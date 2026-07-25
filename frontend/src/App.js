@@ -9,7 +9,7 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <div className="App bg-white min-vh-100 font-monospace">
+        <div className="App min-vh-100 font-monospace">
           <RouterProvider router={router} />
           <Toaster 
             position="top-center"

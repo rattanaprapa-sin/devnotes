@@ -10,7 +10,7 @@ export default function Header() {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -37,8 +37,8 @@ export default function Header() {
         style={{
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          backgroundColor: theme === 'dark' ? 'rgba(33, 37, 41, 0.75)' : 'rgba(255, 255, 255, 0.75)',
-          borderBottom: theme === 'dark' ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+          backgroundColor: theme === 'dark' ? 'rgba(33, 37, 41, 0.75)' : (theme === 'blue' ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.75)'),
+          borderBottom: theme === 'dark' ? '1px solid rgba(255,255,255,0.08)' : (theme === 'blue' ? '1px solid rgba(255,255,255,0.4)' : '1px solid rgba(0,0,0,0.05)'),
           zIndex: 1020,
           top: 0
         }}
@@ -95,18 +95,37 @@ export default function Header() {
                     </li>
                     <li><hr className={`dropdown-divider ${theme === 'dark' ? 'border-secondary border-opacity-25' : ''}`} /></li>
                     <li>
-                      <button 
-                        className="dropdown-item py-2 d-flex align-items-center justify-content-between fw-medium" 
-                        onClick={() => toggleTheme()}
-                      >
-                        <div className="d-flex align-items-center">
-                          <i className={`bi ${theme === 'dark' ? 'bi-moon-stars' : 'bi-brightness-high-fill'} me-3 ${theme === 'dark' ? 'text-light opacity-75' : 'text-secondary'}`}></i>
-                          {theme === 'dark' ? 'Night Mode' : 'Day Mode'}
+                      <div className="px-3 py-2">
+                        <span className={`small fw-bold text-uppercase ${theme === 'dark' ? 'text-secondary' : 'text-muted'} mb-2 d-block`} style={{ fontSize: '0.7rem', letterSpacing: '0.5px' }}>Theme</span>
+                        <div className="d-flex gap-2">
+                          <button 
+                            className={`btn rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm ${theme === 'light' ? 'border border-2 border-primary' : 'border border-dark border-opacity-25'}`}
+                            style={{ width: '32px', height: '32px', background: '#ffffff' }}
+                            onClick={() => setTheme('light')}
+                            title="Day Mode"
+                          >
+                            {theme === 'light' && <i className="bi bi-check text-primary fs-6"></i>}
+                          </button>
+                          
+                          <button 
+                            className={`btn rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm ${theme === 'blue' ? 'border border-2 border-primary' : 'border border-dark border-opacity-25'}`}
+                            style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #e0e7ff, #cffafe)' }}
+                            onClick={() => setTheme('blue')}
+                            title="Blue Mode"
+                          >
+                            {theme === 'blue' && <i className="bi bi-check text-primary fs-6"></i>}
+                          </button>
+
+                          <button 
+                            className={`btn rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm ${theme === 'dark' ? 'border border-2 border-primary' : 'border-0'}`}
+                            style={{ width: '32px', height: '32px', background: '#212529' }}
+                            onClick={() => setTheme('dark')}
+                            title="Night Mode"
+                          >
+                            {theme === 'dark' && <i className="bi bi-check text-white fs-6"></i>}
+                          </button>
                         </div>
-                        <div className={`rounded-pill position-relative`} style={{ width: '36px', height: '20px', backgroundColor: theme === 'dark' ? '#0d6efd' : '#e9ecef', transition: 'background-color 0.3s ease' }}>
-                          <div className="rounded-circle bg-white position-absolute shadow-sm" style={{ width: '16px', height: '16px', top: '2px', left: theme === 'dark' ? '18px' : '2px', transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}></div>
-                        </div>
-                      </button>
+                      </div>
                     </li>
                     <li><hr className={`dropdown-divider ${theme === 'dark' ? 'border-secondary border-opacity-25' : ''}`} /></li>
                     <li>

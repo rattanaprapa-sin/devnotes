@@ -83,12 +83,12 @@ export default function Home() {
   });
 
   return (
-    <div className="container pb-5">
+    <>
       <Header />
-
-      <div className="text-center mt-5 pt-4 mb-4">
+      <div className="container pb-5">
+        <div className="text-center mt-5 pt-4 mb-4">
         <p className="text-secondary fs-5">
-          Your modern workspace for frameworks, tools, and coding wisdom.
+          Your modern workspace for frameworks, tools, and coding wisdom
         </p>
       </div>
       
@@ -116,11 +116,11 @@ export default function Home() {
         }
         if (filteredNotebooks.length === 0) {
           return (
-            <div className="py-5 text-center text-secondary">
-              <i className="bi bi-search display-1 mb-3 text-secondary opacity-25"></i>
-              <h5>No notebooks match your search</h5>
-              <p>Try using different keywords or categories.</p>
-            </div>
+            <EmptyState 
+              title="No notebooks match your search"
+              description="Try using different keywords or categories"
+              icon="bi-search"
+            />
           );
         }
         return (
@@ -163,6 +163,7 @@ export default function Home() {
         message={`Are you sure you want to delete "${notebookToDelete?.title ? notebookToDelete.title.charAt(0).toUpperCase() + notebookToDelete.title.slice(1) : 'this notebook'}"? All notes inside will be permanently lost.`}
         isDeleting={isDeleting}
       />
-    </div>
+      </div>
+    </>
   );
 }

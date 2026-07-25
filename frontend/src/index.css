@@ -1,3 +1,87 @@
+:root {
+  --bs-primary: #4f46e5;
+  --bs-primary-rgb: 79, 70, 229;
+  --bs-secondary: #0ea5e9;
+  --bs-secondary-rgb: 14, 165, 233;
+  --bs-info: #06b6d4;
+  --bs-info-rgb: 6, 182, 212;
+  --bs-success: #10b981;
+  --bs-success-rgb: 16, 185, 129;
+  --bs-warning: #f59e0b;
+  --bs-warning-rgb: 245, 158, 11;
+  --bs-danger-rgb: 239, 68, 68;
+  
+  --bs-link-color: #4f46e5;
+  --bs-link-hover-color: #4338ca;
+  --bs-secondary-color: #495057; /* Darker gray for better contrast */
+}
+
+body {
+}
+
+[data-bs-theme="blue"] body,
+[data-bs-theme="blue"] .App.bg-white {
+  background: linear-gradient(135deg, #e0e7ff 0%, #dbeafe 50%, #cffafe 100%) !important;
+  background-attachment: fixed !important;
+}
+
+/* Button & Color Overrides */
+.btn-primary {
+  background-color: #4f46e5 !important;
+  border-color: #4f46e5 !important;
+  color: #fff !important;
+}
+.btn-primary:hover {
+  background-color: #4338ca !important;
+  border-color: #4338ca !important;
+}
+.text-primary {
+  color: #4f46e5 !important;
+}
+
+/* Day Mode (Default) Typography */
+.text-secondary {
+  color: #495057 !important; /* Darker gray for better contrast */
+}
+
+/* Blue Mode Typography */
+[data-bs-theme="blue"] body {
+  color: #0f172a !important; /* Midnight blue for text */
+}
+[data-bs-theme="blue"] .text-secondary {
+  color: #334155 !important; /* Slate gray for secondary text */
+}
+[data-bs-theme="blue"] .text-dark {
+  color: #0f172a !important;
+}
+[data-bs-theme="blue"] .btn-dark {
+  background-color: #4f46e5 !important;
+  border-color: #4f46e5 !important;
+  color: #ffffff !important;
+}
+[data-bs-theme="blue"] .btn-dark:hover {
+  background-color: #4338ca !important;
+  border-color: #4338ca !important;
+}
+
+[data-bs-theme="dark"] {
+  --bs-primary: #818cf8;
+  --bs-primary-rgb: 129, 140, 248;
+  --bs-secondary: #38bdf8;
+  --bs-secondary-rgb: 56, 189, 248;
+  --bs-info: #22d3ee;
+  --bs-info-rgb: 34, 211, 238;
+  --bs-success: #34d399;
+  --bs-success-rgb: 52, 211, 153;
+  --bs-warning: #fbbf24;
+  --bs-warning-rgb: 251, 191, 36;
+  --bs-danger: #f87171;
+  --bs-danger-rgb: 248, 113, 113;
+  
+  --bs-link-color: #818cf8;
+  --bs-link-hover-color: #a5b4fc;
+}
+
 @keyframes fadeSlideUp {
   from {
     opacity: 0;
@@ -130,12 +214,8 @@
 }
 
 /* Dark Mode Global Overrides */
-[data-bs-theme="dark"] body,
-[data-bs-theme="dark"] .App.bg-white {
-  background-color: var(--bs-body-bg) !important;
-}
 [data-bs-theme="dark"] .bg-white {
-  background-color: var(--bs-tertiary-bg) !important; /* Lighter background for cards */
+  background-color: var(--bs-tertiary-bg) !important;
 }
 [data-bs-theme="dark"] .text-dark {
   color: #f8f9fa !important; /* Brighter white for high contrast text */
@@ -207,4 +287,10 @@
 [data-bs-theme="dark"] .skeleton {
   background: #2b3035;
   background-image: linear-gradient(90deg, #2b3035 0px, #343a40 40px, #2b3035 80px);
+}
+
+.empty-state-icon {
+  width: 80px;
+  height: 80px;
+  z-index: 1;
 }

@@ -52,7 +52,7 @@ export default function ForgotPasswordModal({ show, onClose }) {
                 <i className="bi bi-envelope-check text-success mb-3 d-block" style={{ fontSize: '3rem' }}></i>
                 <h5 className="fw-bold text-dark">Check your email</h5>
                 <p className="text-secondary mb-0">
-                  We've sent a password reset link to <strong>{email}</strong>.
+                  We've sent a password reset link to <strong>{email}</strong>
                 </p>
                 <button className="btn btn-dark w-100 rounded-pill py-2 mt-4" onClick={handleClose}>
                   Back to Login

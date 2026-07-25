@@ -7,14 +7,12 @@ import { Provider } from 'react-redux'
 import { store } from './store'
 import App from './App.js'
 import { Analytics } from "@vercel/analytics/react"
-import { SpeedInsights } from "@vercel/speed-insights/react"
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Provider store={store}>
       <App />
       <Analytics />
-      <SpeedInsights />
     </Provider>
   </StrictMode>,
 )

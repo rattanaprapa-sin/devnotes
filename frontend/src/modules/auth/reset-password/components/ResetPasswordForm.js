@@ -58,7 +58,7 @@ export default function ResetPasswordForm() {
         <div className="text-center mb-4">
           <i className="bi bi-key-fill text-dark mb-3 d-block" style={{ fontSize: '2.5rem' }}></i>
           <h3 className="fw-bolder text-dark mb-2">Set New Password</h3>
-          <p className="text-secondary small">Please enter your new password below.</p>
+          <p className="text-secondary small">Please enter your new password below</p>
         </div>
 
         {error && (

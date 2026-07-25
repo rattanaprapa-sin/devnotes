@@ -99,17 +99,19 @@ export default function NotebookDetail() {
 
   if (status === 'loading' || status === 'idle') {
     return (
-      <div className="container pb-5">
+      <>
         <Header />
-        <div className="mt-5 pt-4">
-          <SkeletonLayout count={6} />
+        <div className="container pb-5">
+          <div className="mt-5 pt-4">
+            <SkeletonLayout count={6} />
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (!notebook) {
-    return <div className="container py-5 text-center">Notebook not found.</div>;
+    return <div className="container py-5 text-center">Notebook not found</div>;
   }
 
   const filteredNotes = (notes || []).filter(note => 
@@ -118,10 +120,10 @@ export default function NotebookDetail() {
   );
 
   return (
-    <div className="container pb-5">
+    <>
       <Header />
-      
-      <button
+      <div className="container pb-5">
+        <button
         className="btn btn-light rounded-pill text-secondary border shadow-sm mb-4 mt-3 d-inline-flex align-items-center gap-2 px-3 py-2"
         onClick={() => navigate('/')}
         style={{ transition: 'all 0.2s' }}
@@ -161,23 +163,37 @@ export default function NotebookDetail() {
                 setIsFlashcardMode(e.target.checked);
                 localStorage.setItem('flashcardMode', e.target.checked);
               }} 
-              style={{ width: '2.5rem', height: '1.25rem', cursor: 'pointer' }} 
+              style={{ width: '2.5rem', height: '1.25rem', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }} 
             />
             <label className="form-check-label fw-semibold text-secondary" htmlFor="flashcardSwitch" style={{ cursor: 'pointer', userSelect: 'none' }}>
               <i className="bi bi-lightning-charge-fill text-warning me-1"></i>
               Flashcard Mode
             </label>
           </div>
-          <div className="btn-group shadow-sm border bg-white rounded-pill p-1">
+          <div className="d-flex shadow-sm border bg-white rounded-pill p-1 position-relative" style={{ width: '160px' }}>
+            <div 
+              className="bg-dark rounded-pill position-absolute" 
+              style={{
+                top: '4px',
+                bottom: '4px',
+                left: '4px',
+                width: 'calc(50% - 4px)',
+                transform: viewMode === 'list' ? 'translateX(0)' : 'translateX(100%)',
+                transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                zIndex: 0
+              }}
+            ></div>
             <button 
-              className={`btn btn-sm rounded-pill px-3 ${viewMode === 'list' ? 'btn-dark' : 'btn-light bg-white border-0 text-secondary'}`}
+              className={`btn btn-sm rounded-pill flex-grow-1 border-0 ${viewMode === 'list' ? 'text-white' : 'text-secondary'}`}
               onClick={() => handleViewModeChange('list')}
+              style={{ transition: 'color 0.3s', zIndex: 1, padding: '0.25rem 0' }}
             >
               <i className="bi bi-list me-1"></i> List
             </button>
             <button 
-              className={`btn btn-sm rounded-pill px-3 ${viewMode === 'grid' ? 'btn-dark' : 'btn-light bg-white border-0 text-secondary'}`}
+              className={`btn btn-sm rounded-pill flex-grow-1 border-0 ${viewMode === 'grid' ? 'text-white' : 'text-secondary'}`}
               onClick={() => handleViewModeChange('grid')}
+              style={{ transition: 'color 0.3s', zIndex: 1, padding: '0.25rem 0' }}
             >
               <i className="bi bi-grid me-1"></i> Grid
             </button>
@@ -201,10 +217,12 @@ export default function NotebookDetail() {
           
           if (filteredNotes.length === 0) {
             return (
-              <div className="col-12 py-5 text-center text-secondary">
-                <i className="bi bi-search display-1 mb-3 text-secondary opacity-25"></i>
-                <h5>No notes match your search</h5>
-                <p>Try using different keywords.</p>
+              <div className="col-12">
+                <EmptyState 
+                  title="No notes match your search"
+                  description="Try using different keywords"
+                  icon="bi-search"
+                />
               </div>
             );
           }
@@ -272,6 +290,7 @@ export default function NotebookDetail() {
         message={`Are you sure you want to delete "${noteToDelete?.title ? noteToDelete.title.charAt(0).toUpperCase() + noteToDelete.title.slice(1) : 'this note'}"? This action cannot be undone.`}
         isDeleting={isDeleting}
       />
-    </div>
+      </div>
+    </>
   );
 }
