@@ -6,6 +6,14 @@ export const fetchNotebooks = createAsyncThunk(
   async () => {
     const response = await getNotebooks();
     return response;
+  },
+  {
+    condition: (arg, { getState }) => {
+      const { status } = getState().notebooks;
+      if (status === 'loading' || status === 'succeeded') {
+        return false;
+      }
+    }
   }
 );
 

@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import toast from 'react-hot-toast';
 import { editNote } from '../../../store/notesSlice';
+import { useTheme } from '../../../contexts/ThemeContext';
 import useEscape from '../../../shared/hooks/useEscape';
 
 export default function EditNoteModal({ show, onClose, noteData }) {
+  const { theme } = useTheme();
   const dispatch = useDispatch();
   
   const [topic, setTopic] = useState('');
@@ -60,7 +62,7 @@ export default function EditNoteModal({ show, onClose, noteData }) {
               <label className="form-label text-secondary small fw-medium">Topic / Subject</label>
               <input 
                 type="text" 
-                className="form-control rounded-3 py-2 shadow-none border-secondary" 
+                className={`form-control rounded-3 py-2 shadow-none ${theme === 'dark' ? 'border-secondary border-opacity-50' : 'border-dark'}`}
                 placeholder="e.g., Hooks, Database connection..."
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
@@ -69,15 +71,15 @@ export default function EditNoteModal({ show, onClose, noteData }) {
             <div className="mb-4">
               <label className="form-label text-secondary small fw-medium">Content</label>
               <textarea 
-                className="form-control rounded-3 py-2 shadow-none border-secondary text-opacity-50" 
+                className={`form-control rounded-3 py-2 shadow-none ${theme === 'dark' ? 'border-secondary border-opacity-50' : 'border-dark'} text-opacity-50`}
                 rows="5" 
                 placeholder="Write your short notes, tricks, or code snippets here..."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
               ></textarea>
             </div>
-            <div className="d-flex justify-content-end gap-3">
-              <button className="btn btn-light rounded-pill px-4" onClick={onClose} disabled={isSaving}>
+            <div className="d-flex justify-content-center justify-content-sm-end gap-3">
+              <button className="btn btn-light border shadow-sm rounded-pill px-4" onClick={onClose} disabled={isSaving}>
                 Cancel
               </button>
               <button className="btn btn-dark rounded-pill px-4" onClick={handleSave} disabled={isSaving}>

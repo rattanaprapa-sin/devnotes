@@ -37,8 +37,8 @@ export default function Header() {
         style={{
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          backgroundColor: theme === 'dark' ? 'rgba(33, 37, 41, 0.75)' : (theme === 'blue' ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.75)'),
-          borderBottom: theme === 'dark' ? '1px solid rgba(255,255,255,0.08)' : (theme === 'blue' ? '1px solid rgba(255,255,255,0.4)' : '1px solid rgba(0,0,0,0.05)'),
+          backgroundColor: theme === 'dark' ? 'rgba(33, 37, 41, 0.75)' : (theme === 'blue' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(255, 255, 255, 0.75)'),
+          borderBottom: theme === 'dark' ? '1px solid rgba(255,255,255,0.08)' : (theme === 'blue' ? '1px solid rgba(255,255,255,0.8)' : '1px solid rgba(0,0,0,0.05)'),
           zIndex: 1020,
           top: 0
         }}
@@ -57,7 +57,7 @@ export default function Header() {
             <div className="position-relative" ref={dropdownRef}>
               {/* Profile Button (Trigger) */}
               <div 
-                className={`profile-btn d-flex align-items-center rounded-pill px-3 py-2 border ${theme === 'dark' ? 'border-secondary border-opacity-25 bg-dark' : 'border-secondary border-opacity-25 bg-white shadow-sm'}`}
+                className={`profile-btn d-flex align-items-center rounded-pill px-3 py-2 border ${theme === 'dark' ? 'border-light border-opacity-25 bg-dark' : 'border-dark border-opacity-25 bg-white shadow-sm'}`}
                 style={{ cursor: 'pointer', transition: 'all 0.2s ease', height: '38px' }}
                 onClick={() => setShowDropdown(!showDropdown)}
               >

@@ -96,8 +96,8 @@ export default function EditNotebookModal({ show, onClose, notebookData }) {
                 onChange={(e) => setDescription(e.target.value)}
               ></textarea>
             </div>
-            <div className="d-flex justify-content-end gap-3">
-              <button className="btn btn-light rounded-pill px-4" onClick={onClose} disabled={isSaving}>
+            <div className="d-flex justify-content-center justify-content-sm-end gap-3">
+              <button className="btn btn-light border shadow-sm rounded-pill px-4" onClick={onClose} disabled={isSaving}>
                 Cancel
               </button>
               <button className="btn btn-dark rounded-pill px-4" onClick={handleSave} disabled={isSaving}>

@@ -14,10 +14,12 @@ import SkeletonLayout from '../../shared/components/SkeletonLayout';
 import EmptyState from '../../shared/components/EmptyState';
 import DeleteConfirmModal from '../../shared/components/DeleteConfirmModal';
 import useKeyboardShortcuts from '../../shared/hooks/useKeyboardShortcuts';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function NotebookDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { theme } = useTheme();
   const dispatch = useDispatch();
 
   const [showAddModal, setShowAddModal] = useState(false);
@@ -147,11 +149,14 @@ export default function NotebookDetail() {
         placeholder={`Search ${notebook.title ? notebook.title.charAt(0).toUpperCase() + notebook.title.slice(1) : ''} notes...`} 
       />
 
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h5 className="mb-0 text-secondary fw-semibold">
-          {filteredNotes.length} Note{filteredNotes.length !== 1 ? 's' : ''}
-        </h5>
-        <div className="d-flex align-items-center gap-4">
+      <div className="row align-items-center mb-0 mb-md-4 gy-2 gy-md-3">
+        <div className="col-auto order-1">
+          <h5 className="mb-0 text-secondary fw-semibold">
+            {filteredNotes.length} Note{filteredNotes.length !== 1 ? 's' : ''}
+          </h5>
+        </div>
+        
+        <div className="col-12 col-md-auto order-3 order-md-2 ms-md-auto">
           <div className="form-check form-switch d-flex align-items-center gap-2 m-0 p-0" title="Hide contents to practice your memory">
             <input 
               className="form-check-input m-0 shadow-sm" 
@@ -170,28 +175,39 @@ export default function NotebookDetail() {
               Flashcard Mode
             </label>
           </div>
-          <div className="d-flex shadow-sm border bg-white rounded-pill p-1 position-relative" style={{ width: '160px' }}>
+        </div>
+
+        <div className="col-auto order-2 order-md-3 ms-auto ms-md-4">
+          <div 
+            className={`d-flex shadow-sm border rounded-pill p-1 position-relative ${
+              theme === 'dark' ? 'bg-dark border-light border-opacity-10' : 
+              theme === 'blue' ? 'bg-white border-primary border-opacity-25' : 
+              'bg-white border-light-subtle'
+            }`} 
+            style={{ width: '160px' }}
+          >
             <div 
-              className="bg-dark rounded-pill position-absolute" 
+              className={`rounded-pill position-absolute`} 
               style={{
                 top: '4px',
                 bottom: '4px',
                 left: '4px',
                 width: 'calc(50% - 4px)',
                 transform: viewMode === 'list' ? 'translateX(0)' : 'translateX(100%)',
-                transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s',
+                backgroundColor: theme === 'dark' ? '#ffffff' : theme === 'blue' ? 'var(--bs-primary)' : '#212529',
                 zIndex: 0
               }}
             ></div>
             <button 
-              className={`btn btn-sm rounded-pill flex-grow-1 border-0 ${viewMode === 'list' ? 'text-white' : 'text-secondary'}`}
+              className={`btn btn-sm rounded-pill flex-grow-1 border-0 ${viewMode === 'list' ? (theme === 'dark' ? 'text-black fw-bold' : 'text-white fw-bold') : 'text-secondary'}`}
               onClick={() => handleViewModeChange('list')}
               style={{ transition: 'color 0.3s', zIndex: 1, padding: '0.25rem 0' }}
             >
               <i className="bi bi-list me-1"></i> List
             </button>
             <button 
-              className={`btn btn-sm rounded-pill flex-grow-1 border-0 ${viewMode === 'grid' ? 'text-white' : 'text-secondary'}`}
+              className={`btn btn-sm rounded-pill flex-grow-1 border-0 ${viewMode === 'grid' ? (theme === 'dark' ? 'text-black fw-bold' : 'text-white fw-bold') : 'text-secondary'}`}
               onClick={() => handleViewModeChange('grid')}
               style={{ transition: 'color 0.3s', zIndex: 1, padding: '0.25rem 0' }}
             >
@@ -270,6 +286,7 @@ export default function NotebookDetail() {
         show={showViewModal}
         onClose={() => setShowViewModal(false)}
         noteData={noteToView}
+        isFlashcardMode={isFlashcardMode}
         hasPrev={noteToView && filteredNotes.findIndex(n => n.id === noteToView.id) > 0}
         hasNext={noteToView && filteredNotes.findIndex(n => n.id === noteToView.id) < filteredNotes.length - 1}
         onPrev={() => {

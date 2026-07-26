@@ -22,7 +22,7 @@ export default function DeleteConfirmModal({ show, onClose, onConfirm, title, me
             </p>
             <div className="d-flex justify-content-center gap-2">
               <button 
-                className="btn btn-light fw-medium rounded-pill px-4 flex-grow-1" 
+                className="btn btn-light border shadow-sm fw-medium rounded-pill px-4 flex-grow-1" 
                 onClick={onClose} 
                 disabled={isDeleting}
               >

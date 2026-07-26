@@ -65,7 +65,7 @@ export default function LoginForm() {
 
   return (
     <>
-      <div className="card shadow-lg border-1 border-light rounded-4 bg-white" style={{ maxWidth: '400px', width: '100%' }}>
+      <div className="card auth-card shadow-lg border-1 border-light rounded-4" style={{ maxWidth: '400px', width: '100%', transition: 'all 0.3s ease' }}>
       <div className="card-body p-5">
         <div className="text-center mb-4">
           <h2 className="fw-bolder text-dark mb-2">DevNotes</h2>
@@ -74,8 +74,8 @@ export default function LoginForm() {
 
         {/* Sliding Tab Toggle */}
         <div 
-          className="d-flex rounded-pill p-1 mb-4 position-relative"
-          style={{ backgroundColor: '#e9ecef' }}
+          className="auth-toggle-container d-flex rounded-pill p-1 mb-4 position-relative"
+          style={{ transition: 'all 0.3s ease' }}
         >
           <div 
             className="position-absolute bg-white shadow-sm rounded-pill"

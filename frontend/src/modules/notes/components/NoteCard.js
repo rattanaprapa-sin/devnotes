@@ -31,7 +31,7 @@ export default function NoteCard({ title, content, date, isPinned, isFlashcardMo
           )}
         </div>
         <div 
-          className={`card-text mb-4 flex-grow-1 fs-6 ${isFlashcardMode && !isHovered ? 'bg-secondary bg-opacity-25 rounded' : 'text-secondary'}`} 
+          className={`card-text mb-4 flex-grow-1 fs-6 ${isFlashcardMode && !isHovered ? 'bg-flashcard rounded' : 'text-secondary'}`} 
           style={{
             display: '-webkit-box',
             WebkitLineClamp: '3',
@@ -43,7 +43,6 @@ export default function NoteCard({ title, content, date, isPinned, isFlashcardMo
             transition: 'all 0.3s ease',
             ...(isFlashcardMode && !isHovered ? {
               color: 'transparent',
-              textShadow: '0 0 10px rgba(0,0,0,0.3)',
               userSelect: 'none'
             } : {})
           }}

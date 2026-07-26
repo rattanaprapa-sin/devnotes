@@ -9,6 +9,14 @@ export const fetchNotebookDetails = createAsyncThunk(
       getNotes(notebookId)
     ]);
     return { notebook: notebookData, notes: notesData };
+  },
+  {
+    condition: (arg, { getState }) => {
+      const { status } = getState().notes;
+      if (status === 'loading') {
+        return false;
+      }
+    }
   }
 );
 

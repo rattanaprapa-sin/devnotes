@@ -3,9 +3,11 @@ import { useDispatch } from 'react-redux';
 import toast from 'react-hot-toast';
 import { createNote } from '../../../storage/api';
 import { addNote } from '../../../store/notesSlice';
+import { useTheme } from '../../../contexts/ThemeContext';
 import useEscape from '../../../shared/hooks/useEscape';
 
 export default function AddNoteModal({ show, onClose, notebookId, onNoteAdded }) {
+  const { theme } = useTheme();
   const [topic, setTopic] = useState('');
   const [content, setContent] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -54,7 +56,7 @@ export default function AddNoteModal({ show, onClose, notebookId, onNoteAdded })
               <label className="form-label text-secondary small fw-medium">Topic / Subject</label>
               <input 
                 type="text" 
-                className="form-control rounded-3 py-2 shadow-none border-secondary" 
+                className={`form-control rounded-3 py-2 shadow-none ${theme === 'dark' ? 'border-secondary border-opacity-50' : 'border-dark'}`}
                 placeholder="e.g., Hooks, Database connection..."
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
@@ -63,7 +65,7 @@ export default function AddNoteModal({ show, onClose, notebookId, onNoteAdded })
             <div className="mb-4">
               <label className="form-label text-secondary small fw-medium">Content</label>
               <textarea 
-                className="form-control rounded-3 py-2 shadow-none border-secondary text-opacity-50" 
+                className={`form-control rounded-3 py-2 shadow-none ${theme === 'dark' ? 'border-secondary border-opacity-50' : 'border-dark'} text-opacity-50`}
                 rows="5" 
                 placeholder="Write your short notes, tricks, or code snippets here..."
                 value={content}

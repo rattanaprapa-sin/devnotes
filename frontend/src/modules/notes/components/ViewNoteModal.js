@@ -1,18 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import SyntaxHighlighter from 'react-syntax-highlighter/dist/esm/prism-light';
+import vscDarkPlus from 'react-syntax-highlighter/dist/esm/styles/prism/vsc-dark-plus';
 
-export default function ViewNoteModal({ show, onClose, noteData, hasNext, hasPrev, onNext, onPrev }) {
-  const [isHidden, setIsHidden] = useState(false);
+// Import and register common languages for PrismLight to dramatically reduce bundle size / chunk count
+import javascript from 'react-syntax-highlighter/dist/esm/languages/prism/javascript';
+import jsx from 'react-syntax-highlighter/dist/esm/languages/prism/jsx';
+import typescript from 'react-syntax-highlighter/dist/esm/languages/prism/typescript';
+import tsx from 'react-syntax-highlighter/dist/esm/languages/prism/tsx';
+import python from 'react-syntax-highlighter/dist/esm/languages/prism/python';
+import css from 'react-syntax-highlighter/dist/esm/languages/prism/css';
+import bash from 'react-syntax-highlighter/dist/esm/languages/prism/bash';
+import json from 'react-syntax-highlighter/dist/esm/languages/prism/json';
+import sql from 'react-syntax-highlighter/dist/esm/languages/prism/sql';
+import markup from 'react-syntax-highlighter/dist/esm/languages/prism/markup'; // handles HTML/XML
+import java from 'react-syntax-highlighter/dist/esm/languages/prism/java';
+import cpp from 'react-syntax-highlighter/dist/esm/languages/prism/cpp';
 
-  // Reset hide state when note changes
+SyntaxHighlighter.registerLanguage('javascript', javascript);
+SyntaxHighlighter.registerLanguage('js', javascript);
+SyntaxHighlighter.registerLanguage('jsx', jsx);
+SyntaxHighlighter.registerLanguage('typescript', typescript);
+SyntaxHighlighter.registerLanguage('ts', typescript);
+SyntaxHighlighter.registerLanguage('tsx', tsx);
+SyntaxHighlighter.registerLanguage('python', python);
+SyntaxHighlighter.registerLanguage('py', python);
+SyntaxHighlighter.registerLanguage('css', css);
+SyntaxHighlighter.registerLanguage('bash', bash);
+SyntaxHighlighter.registerLanguage('sh', bash);
+SyntaxHighlighter.registerLanguage('json', json);
+SyntaxHighlighter.registerLanguage('sql', sql);
+SyntaxHighlighter.registerLanguage('html', markup);
+SyntaxHighlighter.registerLanguage('xml', markup);
+SyntaxHighlighter.registerLanguage('markup', markup);
+SyntaxHighlighter.registerLanguage('java', java);
+SyntaxHighlighter.registerLanguage('cpp', cpp);
+SyntaxHighlighter.registerLanguage('c++', cpp);
+
+export default function ViewNoteModal({ show, onClose, noteData, hasNext, hasPrev, onNext, onPrev, isFlashcardMode }) {
+  const [isHidden, setIsHidden] = useState(isFlashcardMode || false);
+
+  // Reset hide state based on global mode when note changes
   useEffect(() => {
     if (show) {
-      setIsHidden(false);
+      setIsHidden(isFlashcardMode || false);
     }
-  }, [noteData, show]);
+  }, [noteData, show, isFlashcardMode]);
 
   // Keyboard shortcuts for Left/Right arrows
   useEffect(() => {
@@ -65,7 +99,7 @@ export default function ViewNoteModal({ show, onClose, noteData, hasNext, hasPre
               </h4>
               <button 
                 type="button" 
-                className="btn-close shadow-none mt-1 bg-light rounded-circle p-2 flex-shrink-0" 
+                className="btn-close shadow-none mt-1 flex-shrink-0" 
                 onClick={onClose}
                 aria-label="Close"
               ></button>
@@ -76,7 +110,7 @@ export default function ViewNoteModal({ show, onClose, noteData, hasNext, hasPre
                 {new Date(noteData.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </div>
               <button 
-                className={`btn btn-sm rounded-pill fw-medium d-flex align-items-center gap-1 transition-all ${isHidden ? 'btn-primary' : 'btn-outline-secondary'}`}
+                className={`btn btn-sm rounded-pill fw-medium d-flex align-items-center gap-1 transition-all ${isHidden ? 'btn-dark' : 'btn-outline-secondary'}`}
                 onClick={() => setIsHidden(!isHidden)}
                 style={{ transition: 'all 0.2s' }}
               >
@@ -87,14 +121,13 @@ export default function ViewNoteModal({ show, onClose, noteData, hasNext, hasPre
           </div>
           <div className="modal-body px-4 py-4 bg-light">
             <div 
-              className={`fs-6 lh-base text-break p-4 rounded-4 shadow-sm border overflow-auto ${isHidden ? 'bg-secondary bg-opacity-25' : 'bg-white text-dark'}`} 
+              className={`fs-6 lh-base text-break p-4 rounded-4 shadow-sm border ${isHidden ? 'bg-flashcard overflow-hidden' : 'bg-white text-dark overflow-auto'}`} 
               style={{ 
                 minHeight: '150px', 
-                maxHeight: '55vh',
-                transition: 'all 0.3s ease',
+                maxHeight: isHidden ? '150px' : '65vh',
+                transition: 'max-height 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.3s ease',
                 ...(isHidden ? {
                   color: 'transparent',
-                  textShadow: '0 0 12px rgba(0,0,0,0.4)',
                   userSelect: 'none',
                   cursor: 'pointer'
                 } : {})

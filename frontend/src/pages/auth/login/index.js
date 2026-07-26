@@ -11,7 +11,7 @@ export default function Login() {
   }
 
   return (
-    <div className="w-100 d-flex align-items-center justify-content-center min-vh-100 bg-light">
+    <div className="w-100 d-flex align-items-center justify-content-center min-vh-100">
       <div className="container d-flex justify-content-center">
         <LoginForm />
       </div>
