@@ -3,14 +3,14 @@ import { getNotebooks, createNotebook as createNotebookApi, togglePinNotebook, u
 
 export const fetchNotebooks = createAsyncThunk(
   'notebooks/fetchNotebooks',
-  async () => {
-    const response = await getNotebooks();
-    return response;
+  async ({ page = 1, limit = 12 } = {}) => {
+    const response = await getNotebooks({ page, limit });
+    return response; // { data, count, page, limit }
   },
   {
     condition: (arg, { getState }) => {
       const { status } = getState().notebooks;
-      if (status === 'loading' || status === 'succeeded') {
+      if (status === 'loading') {
         return false;
       }
     }
@@ -54,9 +54,21 @@ const notebooksSlice = createSlice({
   initialState: {
     items: [],
     status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
-    error: null
+    error: null,
+    pagination: {
+      currentPage: 1,
+      totalPages: 1,
+      totalItems: 0,
+      limit: 12
+    }
   },
-  reducers: {},
+  reducers: {
+    clearNotebooks: (state) => {
+      state.items = [];
+      state.status = 'idle';
+      state.error = null;
+    }
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchNotebooks.pending, (state) => {
@@ -64,7 +76,13 @@ const notebooksSlice = createSlice({
       })
       .addCase(fetchNotebooks.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.items = action.payload;
+        state.items = action.payload.data;
+        state.pagination = {
+          currentPage: action.payload.page,
+          totalPages: Math.ceil(action.payload.count / action.payload.limit) || 1,
+          totalItems: action.payload.count,
+          limit: action.payload.limit
+        };
       })
       .addCase(fetchNotebooks.rejected, (state, action) => {
         state.status = 'failed';
@@ -99,4 +117,5 @@ const notebooksSlice = createSlice({
   }
 });
 
+export const { clearNotebooks } = notebooksSlice.actions;
 export default notebooksSlice.reducer;

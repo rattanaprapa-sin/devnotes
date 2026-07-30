@@ -14,6 +14,7 @@ import SkeletonLayout from '../../shared/components/SkeletonLayout';
 import EmptyState from '../../shared/components/EmptyState';
 import DeleteConfirmModal from '../../shared/components/DeleteConfirmModal';
 import useKeyboardShortcuts from '../../shared/hooks/useKeyboardShortcuts';
+import Pagination from '../../shared/components/Pagination';
 import { useTheme } from '../../contexts/ThemeContext';
 
 export default function NotebookDetail() {
@@ -49,19 +50,28 @@ export default function NotebookDetail() {
   const [noteToView, setNoteToView] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const { currentNotebook: notebook, items: notes, status } = useSelector((state) => state.notes);
+  const { currentNotebook: notebook, items: notes, status, pagination } = useSelector((state) => state.notes);
 
   useEffect(() => {
     if (id) {
-      dispatch(fetchNotebookDetails(id));
+      dispatch(fetchNotebookDetails({ notebookId: id, page: pagination?.currentPage || 1, limit: pagination?.limit || 12 }));
     }
     return () => {
       dispatch(clearCurrentNotebook());
     };
   }, [id, dispatch]);
 
+  const handlePageChange = (newPage) => {
+    if (id) {
+      dispatch(fetchNotebookDetails({ notebookId: id, page: newPage, limit: pagination?.limit || 12 }));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   const handleNoteAdded = () => {
-    dispatch(fetchNotebookDetails(id));
+    if (id) {
+      dispatch(fetchNotebookDetails({ notebookId: id, page: 1, limit: pagination?.limit || 12 }));
+    }
   };
 
   const handleViewClick = (note) => {
@@ -84,18 +94,22 @@ export default function NotebookDetail() {
   };
 
   const handleConfirmDelete = async () => {
-    if (!noteToDelete) return;
-    setIsDeleting(true);
-    try {
-      await dispatch(removeNote(noteToDelete.id)).unwrap();
-      setShowDeleteModal(false);
-      setNoteToDelete(null);
-      toast.success('Note deleted successfully');
-    } catch (error) {
-      console.error('Failed to delete note:', error);
-      toast.error('Failed to delete note');
-    } finally {
-      setIsDeleting(false);
+    if (noteToDelete) {
+      setIsDeleting(true);
+      try {
+        await dispatch(removeNote(noteToDelete.id)).unwrap();
+        toast.success('Note deleted successfully');
+        setShowDeleteModal(false);
+        setNoteToDelete(null);
+        if (id) {
+          dispatch(fetchNotebookDetails({ notebookId: id, page: pagination?.currentPage || 1, limit: pagination?.limit || 12 }));
+        }
+      } catch (error) {
+        console.error('Failed to delete note:', error);
+        toast.error('Failed to delete note');
+      } finally {
+        setIsDeleting(false);
+      }
     }
   };
 
@@ -264,6 +278,14 @@ export default function NotebookDetail() {
           );
         })()}
       </div>
+
+      {notes.length > 0 && pagination?.totalPages > 1 && (
+        <Pagination 
+          currentPage={pagination.currentPage} 
+          totalPages={pagination.totalPages} 
+          onPageChange={handlePageChange} 
+        />
+      )}
 
       {notes.length > 0 && (
         <AddButton onClick={() => setShowAddModal(true)} label="New Note" />

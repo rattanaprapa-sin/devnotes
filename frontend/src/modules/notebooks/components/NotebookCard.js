@@ -37,10 +37,19 @@ export default function NotebookCard({ title, category, description, noteCount, 
             <i className={`bi ${isPinned ? 'bi-pin-angle-fill' : 'bi-pin-angle'}`}></i>
           </button>
         </div>
-        <p className="card-text text-secondary flex-grow-1 fs-6 lh-base">
+        <p 
+          className="card-text text-secondary fs-6 lh-base mb-0"
+          style={{
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
+          }}
+        >
           {description}
         </p>
-        <div className="d-flex justify-content-between align-items-center mt-4 pt-2">
+        <div className="d-flex justify-content-between align-items-center mt-auto pt-3">
           <div className="text-secondary small d-flex align-items-center gap-2 fw-medium">
             <i className="bi bi-file-earmark-text"></i>
             <span>{noteCount} Notes</span>

@@ -41,7 +41,7 @@ export default function EditNotebookModal({ show, onClose, notebookData }) {
       onClose();
     } catch (error) {
       console.error('Error saving notebook:', error);
-      toast.error('Failed to update notebook.');
+      toast.error(error.message || 'Failed to update notebook.');
     } finally {
       setIsSaving(false);
     }

@@ -1,13 +1,19 @@
 import { useAuth } from '../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
+import { useDispatch } from 'react-redux';
+import { clearNotebooks } from '../../../store/notebooksSlice';
+import { clearCurrentNotebook } from '../../../store/notesSlice';
 import EditProfileModal from '../../auth/profile/components/EditProfileModal';
+import UserGuideModal from '../../../shared/components/UserGuideModal';
 import { useTheme } from '../../../contexts/ThemeContext';
 
 export default function Header() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showUserGuide, setShowUserGuide] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const { theme, setTheme } = useTheme();
@@ -27,6 +33,8 @@ export default function Header() {
   }, [showDropdown]);
 
   const handleLogout = async () => {
+    dispatch(clearNotebooks());
+    dispatch(clearCurrentNotebook());
     await signOut();
     navigate('/login');
   };
@@ -54,6 +62,14 @@ export default function Header() {
 
         {user && (
           <div className="d-flex align-items-center gap-3">
+            <button 
+              className={`btn btn-sm rounded-circle d-flex align-items-center justify-content-center border ${theme === 'dark' ? 'border-secondary border-opacity-50 text-light bg-dark' : 'border-secondary border-opacity-25 text-secondary bg-white shadow-sm'}`}
+              style={{ width: '38px', height: '38px', transition: 'all 0.2s ease' }}
+              onClick={() => setShowUserGuide(true)}
+              title="User Guide"
+            >
+              <i className="bi bi-question-lg fs-5"></i>
+            </button>
             <div className="position-relative" ref={dropdownRef}>
               {/* Profile Button (Trigger) */}
               <div 
@@ -148,6 +164,10 @@ export default function Header() {
         show={showEditProfile} 
         onClose={() => setShowEditProfile(false)} 
         user={user} 
+      />
+      <UserGuideModal
+        show={showUserGuide}
+        onClose={() => setShowUserGuide(false)}
       />
     </>
   );

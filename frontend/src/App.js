@@ -5,10 +5,18 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { Toaster } from 'react-hot-toast';
 
+import useRealtimeSync from './shared/hooks/useRealtimeSync';
+
+function RealtimeSyncComponent() {
+  useRealtimeSync();
+  return null;
+}
+
 function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
+        <RealtimeSyncComponent />
         <div className="App min-vh-100 font-monospace">
           <RouterProvider router={router} />
           <Toaster 

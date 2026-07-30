@@ -2,16 +2,26 @@
  * Service to handle Supabase interactions for Notes
  */
 
-const getNotesByNotebookId = async (supabase, notebookId) => {
-  const { data, error } = await supabase
+const getNotesByNotebookId = async (supabase, notebookId, { page = 1, limit = 12 } = {}) => {
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  const { data, count, error } = await supabase
     .from('notes')
-    .select('*')
+    .select('*', { count: 'exact' })
     .eq('notebook_id', notebookId)
     .order('is_pinned', { ascending: false, nullsFirst: false })
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .range(from, to);
 
   if (error) throw error;
-  return data;
+  
+  return {
+    data,
+    count,
+    page: parseInt(page),
+    limit: parseInt(limit)
+  };
 };
 
 const createNote = async (supabase, userId, { notebookId, title, content }) => {

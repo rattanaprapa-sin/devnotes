@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import { fetchNotebooks, toggleNotebookPin, removeNotebook } from '../../store/notebooksSlice';
@@ -14,6 +15,7 @@ import SkeletonLayout from '../../shared/components/SkeletonLayout';
 import EmptyState from '../../shared/components/EmptyState';
 import DeleteConfirmModal from '../../shared/components/DeleteConfirmModal';
 import useKeyboardShortcuts from '../../shared/hooks/useKeyboardShortcuts';
+import Pagination from '../../shared/components/Pagination';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -28,20 +30,31 @@ export default function Home() {
   const [notebookToDelete, setNotebookToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   
-  const { items: notebooks, status } = useSelector((state) => state.notebooks);
+  const { items: notebooks, status, pagination } = useSelector((state) => state.notebooks);
   
   const categories = ['Frontend', 'Backend', 'Database', 'DevOps', 'Tooling', 'Other'];
   
   useKeyboardShortcuts();
 
+  const { user } = useAuth();
+
   useEffect(() => {
-    if (status === 'idle') {
-      dispatch(fetchNotebooks());
+    if (user?.id) {
+      dispatch(fetchNotebooks({ page: pagination?.currentPage || 1, limit: pagination?.limit || 12 }));
     }
-  }, [status, dispatch]);
+  }, [user?.id, dispatch]);
+
+  const handlePageChange = (newPage) => {
+    dispatch(fetchNotebooks({ page: newPage, limit: pagination?.limit || 12 }));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleNotebookAdded = () => {
-    dispatch(fetchNotebooks());
+    dispatch(fetchNotebooks({ page: 1, limit: pagination?.limit || 12 }));
+  };
+
+  const handleNotebookUpdated = () => {
+    dispatch(fetchNotebooks({ page: pagination?.currentPage || 1, limit: pagination?.limit || 12 }));
   };
 
   const handleTogglePin = (notebook) => {
@@ -54,18 +67,20 @@ export default function Home() {
   };
 
   const handleConfirmDelete = async () => {
-    if (!notebookToDelete) return;
-    setIsDeleting(true);
-    try {
-      await dispatch(removeNotebook(notebookToDelete.id)).unwrap();
-      setShowDeleteModal(false);
-      setNotebookToDelete(null);
-      toast.success('Notebook deleted successfully');
-    } catch (error) {
-      console.error('Failed to delete notebook:', error);
-      toast.error('Failed to delete notebook');
-    } finally {
-      setIsDeleting(false);
+    if (notebookToDelete) {
+      setIsDeleting(true);
+      try {
+        await dispatch(removeNotebook(notebookToDelete.id)).unwrap();
+        toast.success('Notebook deleted successfully');
+        setShowDeleteModal(false);
+        setNotebookToDelete(null);
+        dispatch(fetchNotebooks({ page: pagination?.currentPage || 1, limit: pagination?.limit || 12 }));
+      } catch (error) {
+        console.error('Failed to delete notebook:', error);
+        toast.error('Failed to delete notebook');
+      } finally {
+        setIsDeleting(false);
+      }
     }
   };
 
@@ -75,10 +90,10 @@ export default function Home() {
   };
 
   // notebooks are already sorted by is_pinned in the Redux slice and backend
-  const filteredNotebooks = notebooks.filter(nb => {
+  const filteredNotebooks = (notebooks || []).filter(nb => {
     const matchesCategory = activeCategory === 'All Tools' || nb.category === activeCategory;
-    const matchesSearch = nb.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          (nb.description && nb.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesSearch = nb?.title?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          (nb?.description && nb.description.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
   });
 
@@ -148,6 +163,14 @@ export default function Home() {
           </div>
         );
       })()}
+      
+      {notebooks.length > 0 && pagination?.totalPages > 1 && (
+        <Pagination 
+          currentPage={pagination.currentPage} 
+          totalPages={pagination.totalPages} 
+          onPageChange={handlePageChange} 
+        />
+      )}
       
       {notebooks.length > 0 && (
         <AddButton onClick={() => setShowAddModal(true)} label="New Notebook" />

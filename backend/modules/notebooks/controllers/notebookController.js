@@ -23,7 +23,11 @@ const { createResponse } = require('../../../utils/responseHandler');
 const getNotebooks = async (req, res, next) => {
   try {
     if (!req.supabase) throw new Error('Supabase not configured');
-    const result = await notebookService.getNotebooks(req.supabase);
+    const { page, limit } = req.query;
+    const result = await notebookService.getNotebooks(req.supabase, { 
+      page: parseInt(page) || 1, 
+      limit: parseInt(limit) || 12 
+    });
     res.json(createResponse(true, 'Notebooks retrieved successfully', result));
   } catch (error) {
     next(error);

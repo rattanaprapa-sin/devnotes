@@ -34,12 +34,12 @@ const getHeaders = async (additionalHeaders = {}) => {
   return headers;
 };
 
-export const getNotebooks = async () => {
+export const getNotebooks = async ({ page = 1, limit = 12 } = {}) => {
   const headers = await getHeaders();
-  const response = await fetch(`${API_URL}/notebooks`, { headers });
+  const response = await fetch(`${API_URL}/notebooks?page=${page}&limit=${limit}`, { headers });
   if (!response.ok) throw new Error('Failed to fetch notebooks');
   const json = await response.json();
-  return json.data;
+  return json.data; // Now returns { data, count, page, limit }
 };
 
 export const createNotebook = async (data) => {
@@ -49,7 +49,10 @@ export const createNotebook = async (data) => {
     headers,
     body: JSON.stringify(data),
   });
-  if (!response.ok) throw new Error('Failed to create notebook');
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Failed to create notebook');
+  }
   const json = await response.json();
   return json.data;
 };
@@ -73,7 +76,10 @@ export const updateNotebook = async (id, data) => {
     headers,
     body: JSON.stringify(data),
   });
-  if (!response.ok) throw new Error('Failed to update notebook');
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Failed to update notebook');
+  }
   const json = await response.json();
   return json.data;
 };
@@ -97,12 +103,12 @@ export const getNotebook = async (id) => {
   return json.data;
 };
 
-export const getNotes = async (notebookId) => {
+export const getNotes = async (notebookId, { page = 1, limit = 12 } = {}) => {
   const headers = await getHeaders();
-  const response = await fetch(`${API_URL}/notes/notebook/${notebookId}`, { headers });
+  const response = await fetch(`${API_URL}/notes/notebook/${notebookId}?page=${page}&limit=${limit}`, { headers });
   if (!response.ok) throw new Error('Failed to fetch notes');
   const json = await response.json();
-  return json.data;
+  return json.data; // Now returns { data, count, page, limit }
 };
 
 export const createNote = async (data) => {

@@ -84,7 +84,7 @@ export default function AddNotebookModal({ show, onClose, onNotebookAdded, exist
       resetAndClose();
     } catch (error) {
       console.error('Error saving notebook:', error);
-      toast.error('Failed to save notebook. Make sure backend is running.');
+      toast.error(error.message || 'Failed to save notebook.');
     } finally {
       setIsSaving(false);
     }

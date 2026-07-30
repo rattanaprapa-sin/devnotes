@@ -3,12 +3,12 @@ import { getNotebook, getNotes, createNote as createNoteApi, updateNote, deleteN
 
 export const fetchNotebookDetails = createAsyncThunk(
   'notes/fetchNotebookDetails',
-  async (notebookId) => {
-    const [notebookData, notesData] = await Promise.all([
+  async ({ notebookId, page = 1, limit = 12 }) => {
+    const [notebookData, notesResponse] = await Promise.all([
       getNotebook(notebookId),
-      getNotes(notebookId)
+      getNotes(notebookId, { page, limit })
     ]);
-    return { notebook: notebookData, notes: notesData };
+    return { notebook: notebookData, notes: notesResponse };
   },
   {
     condition: (arg, { getState }) => {
@@ -58,13 +58,25 @@ const notesSlice = createSlice({
     currentNotebook: null,
     items: [],
     status: 'idle',
-    error: null
+    error: null,
+    pagination: {
+      currentPage: 1,
+      totalPages: 1,
+      totalItems: 0,
+      limit: 12
+    }
   },
   reducers: {
     clearCurrentNotebook: (state) => {
       state.currentNotebook = null;
       state.items = [];
       state.status = 'idle';
+      state.pagination = {
+        currentPage: 1,
+        totalPages: 1,
+        totalItems: 0,
+        limit: 12
+      };
     }
   },
   extraReducers: (builder) => {
@@ -75,7 +87,13 @@ const notesSlice = createSlice({
       .addCase(fetchNotebookDetails.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.currentNotebook = action.payload.notebook;
-        state.items = action.payload.notes;
+        state.items = action.payload.notes.data;
+        state.pagination = {
+          currentPage: action.payload.notes.page,
+          totalPages: Math.ceil(action.payload.notes.count / action.payload.notes.limit) || 1,
+          totalItems: action.payload.notes.count,
+          limit: action.payload.notes.limit
+        };
       })
       .addCase(fetchNotebookDetails.rejected, (state, action) => {
         state.status = 'failed';

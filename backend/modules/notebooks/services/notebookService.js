@@ -2,21 +2,32 @@
  * Service to handle Supabase interactions for Notebooks
  */
 
-const getNotebooks = async (supabase) => {
-  const { data, error } = await supabase
+const getNotebooks = async (supabase, { page = 1, limit = 12 } = {}) => {
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  const { data, count, error } = await supabase
     .from('notebooks')
-    .select('*, notes(count)')
+    .select('*, notes(count)', { count: 'exact' })
     .order('is_pinned', { ascending: false, nullsFirst: false })
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .range(from, to);
 
   if (error) throw error;
 
   // Format response to include noteCount
-  return data.map(nb => ({
+  const formattedData = data.map(nb => ({
     ...nb,
     title: nb.tool_name, // Map tool_name to title for frontend
     noteCount: nb.notes[0]?.count || 0
   }));
+
+  return {
+    data: formattedData,
+    count,
+    page: parseInt(page),
+    limit: parseInt(limit)
+  };
 };
 
 const getNotebookById = async (supabase, id) => {
@@ -33,6 +44,19 @@ const getNotebookById = async (supabase, id) => {
 };
 
 const createNotebook = async (supabase, userId, { title, category, description }) => {
+  // Check for duplicate tool_name (case-insensitive)
+  const { data: existing } = await supabase
+    .from('notebooks')
+    .select('id')
+    .ilike('tool_name', title)
+    .single();
+
+  if (existing) {
+    const error = new Error(`Notebook "${title}" already exists`);
+    error.statusCode = 400;
+    throw error;
+  }
+
   const { data, error } = await supabase
     .from('notebooks')
     .insert([
@@ -67,6 +91,20 @@ const togglePinNotebook = async (supabase, id, isPinned) => {
 };
 
 const updateNotebook = async (supabase, id, { title, category, description }) => {
+  // Check for duplicate tool_name (case-insensitive) excluding the current notebook
+  const { data: existing } = await supabase
+    .from('notebooks')
+    .select('id')
+    .ilike('tool_name', title)
+    .neq('id', id)
+    .single();
+
+  if (existing) {
+    const error = new Error(`Notebook "${title}" already exists`);
+    error.statusCode = 400;
+    throw error;
+  }
+
   const { data, error } = await supabase
     .from('notebooks')
     .update({ 
