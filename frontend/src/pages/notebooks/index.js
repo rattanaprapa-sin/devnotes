@@ -1,21 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
-import { fetchNotebookDetails, clearCurrentNotebook, removeNote, toggleNotePin } from '../../store/notesSlice';
+import { fetchNotebookDetails, clearCurrentNotebook, removeNote, toggleNotePin, fetchFilteredNotes } from '../../store/notesSlice';
+import { fetchNoteCategories } from '../../store/categoriesSlice';
 import Header from '../../modules/notebooks/components/Header';
 import NoteCard from '../../modules/notes/components/NoteCard';
 import AddNoteModal from '../../modules/notes/components/AddNoteModal';
 import EditNoteModal from '../../modules/notes/components/EditNoteModal';
 import ViewNoteModal from '../../modules/notes/components/ViewNoteModal';
+import NoteCategoryManager from '../../modules/notes/components/NoteCategoryManager';
+import useHorizontalScroll from '../../shared/hooks/useHorizontalScroll';
+import AppButton from '../../shared/ui/AppButton';
 import AddButton from '../../modules/notebooks/components/AddButton';
-import SearchBar from '../../modules/notebooks/components/SearchBar';
+import SearchBar from '../../shared/components/SearchBar';
 import SkeletonLayout from '../../shared/components/SkeletonLayout';
 import EmptyState from '../../shared/components/EmptyState';
 import DeleteConfirmModal from '../../shared/components/DeleteConfirmModal';
 import useKeyboardShortcuts from '../../shared/hooks/useKeyboardShortcuts';
 import Pagination from '../../shared/components/Pagination';
 import { useTheme } from '../../contexts/ThemeContext';
+import useModal from '../../shared/hooks/useModal';
+import useLocalStorage from '../../shared/hooks/useLocalStorage';
 
 export default function NotebookDetail() {
   const navigate = useNavigate();
@@ -23,26 +29,33 @@ export default function NotebookDetail() {
   const { theme } = useTheme();
   const dispatch = useDispatch();
 
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showViewModal, setShowViewModal] = useState(false);
+  const addModal = useModal(false);
+  const editModal = useModal(false);
+  const deleteModal = useModal(false);
+  const viewModal = useModal(false);
+  const categoryManagerModal = useModal(false);
   
-  const [viewMode, setViewMode] = useState(() => {
-    return localStorage.getItem('notesViewMode') || 'grid';
-  });
+  const [viewMode, setViewMode] = useLocalStorage('notesViewMode', 'grid');
   
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategoryFilter, setActiveCategoryFilter] = useState('All');
+
+  const { scrollContainerRef, isDragging, events, hasDragged } = useHorizontalScroll();
+
+  const [animKey, setAnimKey] = useState(0);
+
+  const handleCategoryClick = (catId) => {
+    if (hasDragged()) return;
+    setActiveCategoryFilter(catId);
+    setAnimKey(k => k + 1);
+  };
   
-  const [isFlashcardMode, setIsFlashcardMode] = useState(() => {
-    return localStorage.getItem('flashcardMode') === 'true';
-  });
+  const [isFlashcardMode, setIsFlashcardMode] = useState(false);
 
   useKeyboardShortcuts();
 
   const handleViewModeChange = (mode) => {
     setViewMode(mode);
-    localStorage.setItem('notesViewMode', mode);
   };
   
   const [noteToEdit, setNoteToEdit] = useState(null);
@@ -50,38 +63,74 @@ export default function NotebookDetail() {
   const [noteToView, setNoteToView] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const { currentNotebook: notebook, items: notes, status, pagination } = useSelector((state) => state.notes);
+  const { currentNotebook: notebook, items: notes, usedCategoryIds, status, pagination } = useSelector((state) => state.notes);
+  const { items: categories, status: categoryStatus } = useSelector((state) => state.categories.noteCategories);
 
   useEffect(() => {
     if (id) {
-      dispatch(fetchNotebookDetails({ notebookId: id, page: pagination?.currentPage || 1, limit: pagination?.limit || 12 }));
+      // Only fetch on mount or when notebook id changes — not on pagination/category changes
+      dispatch(fetchNotebookDetails({ notebookId: id, page: 1, limit: 12 }));
     }
     return () => {
       dispatch(clearCurrentNotebook());
     };
   }, [id, dispatch]);
 
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    if (id) {
+      const timer = setTimeout(() => {
+        dispatch(fetchFilteredNotes({ 
+          notebookId: id, 
+          page: 1, 
+          limit: pagination?.limit || 12, 
+          categoryId: activeCategoryFilter, 
+          search: searchQuery 
+        }));
+      }, searchQuery ? 300 : 0);
+      return () => clearTimeout(timer);
+    }
+  }, [id, dispatch, activeCategoryFilter, searchQuery]); // Skip pagination deps to avoid loop
+
+  useEffect(() => {
+    if (categoryStatus === 'idle') {
+      dispatch(fetchNoteCategories());
+    }
+  }, [categoryStatus, dispatch]);
+
   const handlePageChange = (newPage) => {
     if (id) {
-      dispatch(fetchNotebookDetails({ notebookId: id, page: newPage, limit: pagination?.limit || 12 }));
+      dispatch(fetchFilteredNotes({ 
+        notebookId: id, 
+        page: newPage, 
+        limit: pagination?.limit || 12,
+        categoryId: activeCategoryFilter,
+        search: searchQuery
+      }));
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
-  const handleNoteAdded = () => {
+
+  const handleCategoryUpdate = () => {
+    dispatch(fetchNoteCategories());
     if (id) {
-      dispatch(fetchNotebookDetails({ notebookId: id, page: 1, limit: pagination?.limit || 12 }));
+      dispatch(fetchNotebookDetails({ notebookId: id, page: pagination?.currentPage || 1, limit: pagination?.limit || 12 }));
     }
   };
 
   const handleViewClick = (note) => {
     setNoteToView(note);
-    setShowViewModal(true);
+    viewModal.open();
   };
 
   const handleEditClick = (note) => {
     setNoteToEdit(note);
-    setShowEditModal(true);
+    editModal.open();
   };
 
   const handleTogglePin = (note) => {
@@ -90,7 +139,7 @@ export default function NotebookDetail() {
 
   const handleDeleteClick = (note) => {
     setNoteToDelete(note);
-    setShowDeleteModal(true);
+    deleteModal.open();
   };
 
   const handleConfirmDelete = async () => {
@@ -99,10 +148,16 @@ export default function NotebookDetail() {
       try {
         await dispatch(removeNote(noteToDelete.id)).unwrap();
         toast.success('Note deleted successfully');
-        setShowDeleteModal(false);
+        deleteModal.close();
         setNoteToDelete(null);
         if (id) {
-          dispatch(fetchNotebookDetails({ notebookId: id, page: pagination?.currentPage || 1, limit: pagination?.limit || 12 }));
+          dispatch(fetchFilteredNotes({ 
+            notebookId: id, 
+            page: pagination?.currentPage || 1, 
+            limit: pagination?.limit || 12,
+            categoryId: activeCategoryFilter,
+            search: searchQuery
+          }));
         }
       } catch (error) {
         console.error('Failed to delete note:', error);
@@ -113,7 +168,8 @@ export default function NotebookDetail() {
     }
   };
 
-  if (status === 'loading' || status === 'idle') {
+  // Only show skeleton on initial load, not on filtering
+  if (!notebook && (status === 'loading' || status === 'idle')) {
     return (
       <>
         <Header />
@@ -130,47 +186,52 @@ export default function NotebookDetail() {
     return <div className="container py-5 text-center">Notebook not found</div>;
   }
 
-  const filteredNotes = (notes || []).filter(note => 
-    note.title?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    note.content?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredNotes = notes || [];
+  const usedCategoryIdsSet = new Set(usedCategoryIds || []);
+  // Show all categories instead of hiding unused ones
+  const usedCategories = categories;
+  const hasOtherCategory = usedCategoryIdsSet.has(null);
 
   return (
     <>
       <Header />
       <div className="container pb-5">
-        <button
-        className="btn btn-light rounded-pill text-secondary border shadow-sm mb-4 mt-3 d-inline-flex align-items-center gap-2 px-3 py-2"
+      <AppButton
+        variant="light"
+        className="text-secondary border shadow-sm mb-4 mt-3 px-3 py-2"
         onClick={() => navigate('/')}
         style={{ transition: 'all 0.2s' }}
+        icon="bi-arrow-left"
       >
-        <i className="bi bi-arrow-left"></i>
-        <span className="fw-medium">Back to Dashboard</span>
-      </button>
+        Back to Dashboard
+      </AppButton>
 
-      <div className="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
-        <h1 className="fw-bolder display-5 mb-0 text-dark">
-          {notebook.title ? notebook.title.charAt(0).toUpperCase() + notebook.title.slice(1) : ''}
-        </h1>
-        <span className={`badge rounded-pill bg-${notebook.colorContext || 'success'}-subtle text-${notebook.colorContext || 'success'} border border-${notebook.colorContext || 'success'}-subtle px-4 py-2 fs-6 fw-semibold`}>
-          {notebook.category}
-        </span>
-      </div>
-
-      <SearchBar 
-        value={searchQuery} 
-        onChange={setSearchQuery} 
-        placeholder={`Search ${notebook.title ? notebook.title.charAt(0).toUpperCase() + notebook.title.slice(1) : ''} notes...`} 
-      />
-
-      <div className="row align-items-center mb-0 mb-md-4 gy-2 gy-md-3">
-        <div className="col-auto order-1">
-          <h5 className="mb-0 text-secondary fw-semibold">
-            {filteredNotes.length} Note{filteredNotes.length !== 1 ? 's' : ''}
-          </h5>
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
+        <div className="d-flex align-items-center gap-3">
+          <h1 className="fw-bolder display-5 mb-0 text-dark">
+            {notebook.title ? notebook.title.charAt(0).toUpperCase() + notebook.title.slice(1) : ''}
+          </h1>
+          <span 
+            className="badge rounded-pill px-4 py-2 fs-6 fw-semibold shadow-sm"
+            style={notebook.notebook_categories?.color ? {
+              backgroundColor: theme === 'blue' ? 'rgba(255, 255, 255, 0.9)' : (theme === 'dark' ? `${notebook.notebook_categories.color}4D` : `${notebook.notebook_categories.color}15`),
+              color: theme === 'dark' ? 'rgba(255, 255, 255, 0.9)' : notebook.notebook_categories.color,
+              border: `1px solid ${theme === 'blue' ? 'rgba(255, 255, 255, 0.8)' : (theme === 'dark' ? `${notebook.notebook_categories.color}66` : `${notebook.notebook_categories.color}30`)}`,
+              backdropFilter: theme === 'blue' ? 'blur(10px)' : 'none',
+              WebkitBackdropFilter: theme === 'blue' ? 'blur(10px)' : 'none',
+            } : {
+              backgroundColor: theme === 'blue' ? 'rgba(255, 255, 255, 0.9)' : (theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0,0,0,0.05)'),
+              color: theme === 'dark' ? 'rgba(255, 255, 255, 0.75)' : '#6c757d',
+              border: `1px solid ${theme === 'blue' ? 'rgba(255, 255, 255, 0.8)' : (theme === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0,0,0,0.1)')}`,
+              backdropFilter: theme === 'blue' ? 'blur(10px)' : 'none',
+              WebkitBackdropFilter: theme === 'blue' ? 'blur(10px)' : 'none',
+            }}
+          >
+            {notebook.notebook_categories?.name || notebook.category || 'Other'}
+          </span>
         </div>
         
-        <div className="col-12 col-md-auto order-3 order-md-2 ms-md-auto">
+        <div className="d-flex flex-wrap align-items-center gap-3 mt-2 mt-md-0">
           <div className="form-check form-switch d-flex align-items-center gap-2 m-0 p-0" title="Hide contents to practice your memory">
             <input 
               className="form-check-input m-0 shadow-sm" 
@@ -178,20 +239,27 @@ export default function NotebookDetail() {
               role="switch" 
               id="flashcardSwitch" 
               checked={isFlashcardMode} 
-              onChange={(e) => {
-                setIsFlashcardMode(e.target.checked);
-                localStorage.setItem('flashcardMode', e.target.checked);
-              }} 
-              style={{ width: '2.5rem', height: '1.25rem', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }} 
+              onChange={(e) => setIsFlashcardMode(e.target.checked)} 
+              style={{ width: '2.5rem', height: '1.25rem', cursor: 'pointer' }} 
             />
             <label className="form-check-label fw-semibold text-secondary" htmlFor="flashcardSwitch" style={{ cursor: 'pointer', userSelect: 'none' }}>
               <i className="bi bi-lightning-charge-fill text-warning me-1"></i>
               Flashcard Mode
             </label>
           </div>
-        </div>
-
-        <div className="col-auto order-2 order-md-3 ms-auto ms-md-4">
+          
+          <AppButton 
+            variant="light"
+            className="bg-white border shadow-sm text-secondary transition-all px-3"
+            onClick={() => categoryManagerModal.open()}
+            style={{ fontSize: '0.875rem', height: '38px' }}
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#fff'}
+            icon="bi-tags-fill opacity-75"
+          >
+            Categories
+          </AppButton>
+          
           <div 
             className={`d-flex shadow-sm border rounded-pill p-1 position-relative ${
               theme === 'dark' ? 'bg-dark border-light border-opacity-10' : 
@@ -231,16 +299,64 @@ export default function NotebookDetail() {
         </div>
       </div>
 
-      <div className="row justify-content-center">
+      <SearchBar 
+        value={searchQuery} 
+        onChange={setSearchQuery} 
+        placeholder={`Search ${notebook.title ? notebook.title.charAt(0).toUpperCase() + notebook.title.slice(1) : ''} notes...`} 
+      />
+
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div 
+          ref={scrollContainerRef}
+          className="d-flex gap-2 overflow-x-auto pb-2 pt-1 custom-scrollbar-hide pe-3"
+          style={{ flex: 1, scrollbarWidth: 'none', msOverflowStyle: 'none', scrollBehavior: isDragging.current ? 'auto' : 'smooth', WebkitOverflowScrolling: 'touch', cursor: 'grab' }}
+          {...events}
+        >
+          <style>{`
+            .custom-scrollbar-hide::-webkit-scrollbar { display: none; }
+          `}</style>
+          <button 
+            className={`btn rounded-pill px-3 py-1 flex-shrink-0 category-filter-btn ${activeCategoryFilter === 'All' ? 'btn-dark fw-semibold shadow-sm' : 'bg-light border text-secondary hover-text-white'}`}
+            onClick={() => handleCategoryClick('All')}
+          >
+            All
+          </button>
+          {usedCategories.map(cat => (
+            <button 
+              key={cat.id}
+              className={`btn rounded-pill px-3 py-1 d-flex align-items-center gap-1 flex-shrink-0 category-filter-btn ${activeCategoryFilter === cat.id ? 'fw-semibold text-white shadow-sm' : 'border'}`}
+              style={{ 
+                transition: 'all 0.2s',
+                backgroundColor: activeCategoryFilter === cat.id ? cat.color : (theme === 'blue' ? 'rgba(255, 255, 255, 0.7)' : (theme === 'dark' ? `${cat.color}4D` : `${cat.color}15`)),
+                color: activeCategoryFilter === cat.id ? '#fff' : (theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : cat.color),
+                borderColor: activeCategoryFilter === cat.id ? cat.color : (theme === 'blue' ? 'rgba(255, 255, 255, 0.5)' : (theme === 'dark' ? `${cat.color}66` : `${cat.color}30`))
+              }}
+              onClick={() => handleCategoryClick(cat.id)}
+            >
+              {cat.name}
+            </button>
+          ))}
+
+        </div>
+        
+        <div className="text-secondary fw-semibold flex-shrink-0 ps-3 border-start d-flex align-items-center" style={{ height: '32px' }}>
+          {filteredNotes.length} Note{filteredNotes.length !== 1 ? 's' : ''}
+        </div>
+      </div>
+
+      <div 
+        className="row justify-content-center"
+        style={{ opacity: status === 'loading' ? 0.5 : 1, transition: 'opacity 0.2s ease', pointerEvents: status === 'loading' ? 'none' : 'auto' }}
+      >
         {(() => {
           if (notes.length === 0) {
             return (
               <EmptyState
                 title="No notes found"
-                description="Create a new note to start organizing your knowledge."
-                icon="bi-box2-heart-fill"
+                description="Create a note to save important snippets or information."
+                icon="bi-journal-plus"
                 actionLabel="Create Note"
-                onAction={() => setShowAddModal(true)}
+                onAction={() => addModal.open()}
               />
             );
           }
@@ -257,23 +373,61 @@ export default function NotebookDetail() {
             );
           }
           
-          return (
-            <div className="row g-4">
-              {filteredNotes.map((note) => (
-                <div key={note.id} className={viewMode === 'grid' ? 'col-12 col-md-6 col-lg-4' : 'col-12'}>
-                  <NoteCard
-                    title={note.title}
-                    content={note.content}
-                    date={new Date(note.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                    isPinned={note.is_pinned}
-                    isFlashcardMode={isFlashcardMode}
-                    onTogglePin={() => handleTogglePin(note)}
-                    onEdit={() => handleEditClick(note)}
-                    onDelete={() => handleDeleteClick(note)}
-                    onClick={() => handleViewClick(note)}
-                  />
+          const renderNoteCard = (note, index) => (
+            <div
+              key={note.id}
+              className={`${viewMode === 'grid' ? 'col-12 col-md-6 col-lg-4' : 'col-12'} animate-fade-slide-up`}
+              style={{ animationDelay: `${(index ?? 0) * 40}ms` }}
+            >
+              <NoteCard
+                title={note.title}
+                content={note.content}
+                category={note.note_categories}
+                date={new Date(note.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                isPinned={note.is_pinned}
+                isFlashcardMode={isFlashcardMode}
+                onTogglePin={() => handleTogglePin(note)}
+                onEdit={() => handleEditClick(note)}
+                onDelete={() => handleDeleteClick(note)}
+                onClick={() => handleViewClick(note)}
+              />
+            </div>
+          );
+
+          const pinnedNotes = filteredNotes.filter(n => n.is_pinned);
+          const unpinnedNotes = filteredNotes.filter(n => !n.is_pinned);
+
+          if (pinnedNotes.length > 0) {
+            return (
+              <div className="col-12" key={animKey}>
+                <div className="d-flex align-items-center gap-2 mb-3 mt-2">
+                  <i className="bi bi-pin-angle-fill text-warning"></i>
+                  <h6 className="mb-0 fw-bold text-secondary text-uppercase tracking-wider" style={{ fontSize: '0.8rem', letterSpacing: '1px' }}>Pinned</h6>
                 </div>
-              ))}
+                <div className="row g-4 mb-5">
+                  {pinnedNotes.map(renderNoteCard)}
+                </div>
+                
+                {unpinnedNotes.length > 0 && (
+                  <>
+                    <div className="d-flex align-items-center gap-3 mb-4">
+                      <h6 className="mb-0 fw-bold text-secondary text-uppercase tracking-wider" style={{ fontSize: '0.8rem', letterSpacing: '1px' }}>Others</h6>
+                      <div className="flex-grow-1 border-bottom" style={{ opacity: 0.1 }}></div>
+                    </div>
+                    <div className="row g-4">
+                      {unpinnedNotes.map(renderNoteCard)}
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          }
+
+          return (
+            <div className="col-12" key={animKey}>
+              <div className="row g-4">
+                {filteredNotes.map(renderNoteCard)}
+              </div>
             </div>
           );
         })()}
@@ -287,27 +441,29 @@ export default function NotebookDetail() {
         />
       )}
 
-      {notes.length > 0 && (
-        <AddButton onClick={() => setShowAddModal(true)} label="New Note" />
-      )}
+      <div className="position-fixed bottom-0 end-0 p-4" style={{ zIndex: 1000 }}>
+        <AddButton onClick={() => addModal.open()} label="New Note" />
+      </div>
       
       <AddNoteModal
-        show={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        notebookId={notebook.id}
-        onNoteAdded={handleNoteAdded}
+        show={addModal.isOpen}
+        onClose={() => addModal.close()}
+        notebookId={id}
+        categories={categories}
       />
       
       <EditNoteModal
-        show={showEditModal}
-        onClose={() => setShowEditModal(false)}
+        show={editModal.isOpen}
+        onClose={() => editModal.close()}
         noteData={noteToEdit}
+        categories={categories}
       />
       
       <ViewNoteModal
-        show={showViewModal}
-        onClose={() => setShowViewModal(false)}
+        show={viewModal.isOpen}
+        onClose={() => viewModal.close()}
         noteData={noteToView}
+        categoryObj={noteToView ? categories.find(c => c.id === noteToView.category_id) : null}
         isFlashcardMode={isFlashcardMode}
         hasPrev={noteToView && filteredNotes.findIndex(n => n.id === noteToView.id) > 0}
         hasNext={noteToView && filteredNotes.findIndex(n => n.id === noteToView.id) < filteredNotes.length - 1}
@@ -322,13 +478,26 @@ export default function NotebookDetail() {
       />
       
       <DeleteConfirmModal 
-        show={showDeleteModal} 
-        onClose={() => setShowDeleteModal(false)} 
+        show={deleteModal.isOpen} 
+        onClose={() => deleteModal.close()} 
         onConfirm={handleConfirmDelete}
         title="Delete Note?"
-        message={`Are you sure you want to delete "${noteToDelete?.title ? noteToDelete.title.charAt(0).toUpperCase() + noteToDelete.title.slice(1) : 'this note'}"? This action cannot be undone.`}
+        message={
+          <>
+            Are you sure you want to delete "{noteToDelete?.title ? noteToDelete.title.charAt(0).toUpperCase() + noteToDelete.title.slice(1) : 'this note'}"?<br />
+            This action cannot be undone.
+          </>
+        }
         isDeleting={isDeleting}
       />
+      
+      {categoryManagerModal.isOpen && (
+        <NoteCategoryManager
+          show={categoryManagerModal.isOpen}
+          onClose={() => categoryManagerModal.close()}
+          onCategoryUpdate={handleCategoryUpdate} 
+        />
+      )}
       </div>
     </>
   );

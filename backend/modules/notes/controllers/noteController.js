@@ -29,10 +29,12 @@ const { createResponse } = require('../../../utils/responseHandler');
 const getNotesByNotebookId = async (req, res, next) => {
   try {
     if (!req.supabase) throw new Error('Supabase not configured');
-    const { page, limit } = req.query;
+    const { page, limit, categoryId, search } = req.query;
     const result = await noteService.getNotesByNotebookId(req.supabase, req.params.notebookId, {
       page: parseInt(page) || 1,
-      limit: parseInt(limit) || 12
+      limit: parseInt(limit) || 12,
+      categoryId,
+      search
     });
     res.json(createResponse(true, 'Notes retrieved successfully', result));
   } catch (error) {
@@ -75,42 +77,6 @@ const createNote = async (req, res, next) => {
   }
 };
 
-/**
- * @swagger
- * /api/notes/{id}/pin:
- *   post:
- *     summary: Toggle pin status of a note
- *     tags: [Notes]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               is_pinned:
- *                 type: boolean
- *     responses:
- *       200:
- *         description: Pin status updated
- */
-const togglePinNote = async (req, res, next) => {
-  try {
-    if (!req.supabase) throw new Error('Supabase not configured');
-    const result = await noteService.togglePinNote(req.supabase, req.params.id, req.body.is_pinned);
-    res.json(createResponse(true, 'Note pin status updated', result));
-  } catch (error) {
-    next(error);
-  }
-};
 
 /**
  * @swagger
@@ -182,7 +148,6 @@ const deleteNote = async (req, res, next) => {
 module.exports = {
   getNotesByNotebookId,
   createNote,
-  togglePinNote,
   updateNote,
   deleteNote
 };

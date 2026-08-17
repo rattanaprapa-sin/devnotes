@@ -1,36 +1,30 @@
 import { useAuth } from '../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
+import AppButton from '../../../shared/ui/AppButton';
+import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { clearNotebooks } from '../../../store/notebooksSlice';
 import { clearCurrentNotebook } from '../../../store/notesSlice';
 import EditProfileModal from '../../auth/profile/components/EditProfileModal';
 import UserGuideModal from '../../../shared/components/UserGuideModal';
 import { useTheme } from '../../../contexts/ThemeContext';
+import useModal from '../../../shared/hooks/useModal';
+import useClickOutside from '../../../shared/hooks/useClickOutside';
 
 export default function Header() {
   const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [showEditProfile, setShowEditProfile] = useState(false);
-  const [showUserGuide, setShowUserGuide] = useState(false);
+  const editProfileModal = useModal(false);
+  const userGuideModal = useModal(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const dropdownRef = useRef(null);
-  const { theme, setTheme } = useTheme();
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowDropdown(false);
-      }
-    };
+  
+  const dropdownRef = useClickOutside(() => {
     if (showDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
+      setShowDropdown(false);
     }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showDropdown]);
+  });
 
   const handleLogout = async () => {
     dispatch(clearNotebooks());
@@ -62,14 +56,14 @@ export default function Header() {
 
         {user && (
           <div className="d-flex align-items-center gap-3">
-            <button 
-              className={`btn btn-sm rounded-circle d-flex align-items-center justify-content-center border ${theme === 'dark' ? 'border-secondary border-opacity-50 text-light bg-dark' : 'border-secondary border-opacity-25 text-secondary bg-white shadow-sm'}`}
-              style={{ width: '38px', height: '38px', transition: 'all 0.2s ease' }}
-              onClick={() => setShowUserGuide(true)}
-              title="User Guide"
-            >
-              <i className="bi bi-question-lg fs-5"></i>
-            </button>
+            <AppButton 
+              variant="outline"
+              className={`rounded-circle d-flex align-items-center justify-content-center ${theme === 'dark' ? 'text-white border-light border-opacity-25 bg-dark hover-bg-dark-subtle' : 'text-secondary border-dark border-opacity-25 bg-white shadow-sm hover-bg-light'}`}
+              onClick={() => userGuideModal.open()}
+              title="DevNotes Guide"
+              style={{ width: '38px', height: '38px', transition: 'all 0.2s', border: '1px solid' }}
+              icon="bi-question-lg fs-5"
+            />
             <div className="position-relative" ref={dropdownRef}>
               {/* Profile Button (Trigger) */}
               <div 
@@ -102,14 +96,17 @@ export default function Header() {
               >
                     <li>
                       <button 
-                        className="dropdown-item py-2 d-flex align-items-center fw-medium" 
-                        onClick={() => { setShowEditProfile(true); setShowDropdown(false); }}
+                        className="dropdown-item d-flex align-items-center py-2"
+                        onClick={() => {
+                          setShowDropdown(false);
+                          editProfileModal.open();
+                        }}
                       >
                         <i className={`bi bi-pencil-square me-3 ${theme === 'dark' ? 'text-light opacity-75' : 'text-secondary'}`}></i>
                         Edit Profile
                       </button>
                     </li>
-                    <li><hr className={`dropdown-divider ${theme === 'dark' ? 'border-secondary border-opacity-25' : ''}`} /></li>
+                    <li><hr className={`dropdown-divider ${theme === 'dark' ? 'border-light border-opacity-10' : ''}`} /></li>
                     <li>
                       <div className="px-3 py-2">
                         <span className={`small fw-bold text-uppercase ${theme === 'dark' ? 'text-secondary' : 'text-muted'} mb-2 d-block`} style={{ fontSize: '0.7rem', letterSpacing: '0.5px' }}>Theme</span>
@@ -133,7 +130,7 @@ export default function Header() {
                           </button>
 
                           <button 
-                            className={`btn rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm ${theme === 'dark' ? 'border border-2 border-primary' : 'border-0'}`}
+                            className={`btn rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm ${theme === 'dark' ? 'border border-2 border-light border-opacity-50' : 'border border-light border-opacity-10'}`}
                             style={{ width: '32px', height: '32px', background: '#212529' }}
                             onClick={() => setTheme('dark')}
                             title="Night Mode"
@@ -143,7 +140,7 @@ export default function Header() {
                         </div>
                       </div>
                     </li>
-                    <li><hr className={`dropdown-divider ${theme === 'dark' ? 'border-secondary border-opacity-25' : ''}`} /></li>
+                    <li><hr className={`dropdown-divider ${theme === 'dark' ? 'border-light border-opacity-10' : ''}`} /></li>
                     <li>
                       <button 
                         className="dropdown-item py-2 d-flex align-items-center text-danger fw-medium" 
@@ -160,15 +157,20 @@ export default function Header() {
         </div>
       </div>
       
-      <EditProfileModal 
-        show={showEditProfile} 
-        onClose={() => setShowEditProfile(false)} 
-        user={user} 
-      />
-      <UserGuideModal
-        show={showUserGuide}
-        onClose={() => setShowUserGuide(false)}
-      />
+      {editProfileModal.isOpen && (
+        <EditProfileModal 
+          show={editProfileModal.isOpen} 
+          onClose={() => editProfileModal.close()} 
+          user={user} 
+        />
+      )}
+      
+      {userGuideModal.isOpen && (
+        <UserGuideModal
+          show={userGuideModal.isOpen}
+          onClose={() => userGuideModal.close()}
+        />
+      )}
     </>
   );
 }

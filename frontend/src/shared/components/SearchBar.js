@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useTheme } from '../../../contexts/ThemeContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function SearchBar({ value, onChange, placeholder = "Search..." }) {
   const [isFocused, setIsFocused] = useState(false);

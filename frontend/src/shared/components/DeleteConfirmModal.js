@@ -1,5 +1,6 @@
 import React from 'react';
 import useEscape from '../hooks/useEscape';
+import AppButton from '../ui/AppButton';
 
 export default function DeleteConfirmModal({ show, onClose, onConfirm, title, message, isDeleting }) {
   useEscape(show, onClose);
@@ -7,8 +8,8 @@ export default function DeleteConfirmModal({ show, onClose, onConfirm, title, me
   if (!show) return null;
 
   return (
-    <div className="modal d-block bg-dark bg-opacity-50" tabIndex="-1" style={{ backdropFilter: 'blur(4px)' }}>
-      <div className="modal-dialog modal-dialog-centered">
+    <div className="modal d-block bg-dark bg-opacity-50" tabIndex="-1" onClick={!isDeleting ? onClose : undefined} style={{ backdropFilter: 'blur(8px)' }}>
+      <div className="modal-dialog modal-dialog-centered" onClick={e => e.stopPropagation()}>
         <div className="modal-content rounded-4 shadow border-0">
           <div className="modal-body p-5 text-center">
             <div className="mb-4">
@@ -21,24 +22,23 @@ export default function DeleteConfirmModal({ show, onClose, onConfirm, title, me
               {message || 'Do you really want to delete this item? This process cannot be undone.'}
             </p>
             <div className="d-flex justify-content-center gap-2">
-              <button 
-                className="btn btn-light border shadow-sm fw-medium rounded-pill px-4 flex-grow-1" 
+              <AppButton 
+                variant="light" 
+                className="border shadow-sm flex-grow-1" 
                 onClick={onClose} 
                 disabled={isDeleting}
               >
                 Cancel
-              </button>
-              <button 
-                className="btn btn-danger fw-medium rounded-pill px-4 flex-grow-1" 
+              </AppButton>
+              <AppButton 
+                variant="danger" 
+                className="flex-grow-1" 
                 onClick={onConfirm} 
                 disabled={isDeleting}
+                isLoading={isDeleting}
               >
-                {isDeleting ? (
-                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                ) : (
-                  'Delete'
-                )}
-              </button>
+                Delete
+              </AppButton>
             </div>
           </div>
         </div>

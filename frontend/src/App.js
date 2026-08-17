@@ -19,7 +19,7 @@ function App() {
         <RealtimeSyncComponent />
         <div className="App min-vh-100 font-monospace">
           <RouterProvider router={router} />
-          <Toaster 
+          <Toaster
             position="top-center"
             containerStyle={{
               top: 40,
@@ -31,6 +31,9 @@ function App() {
                 background: '#212529',
                 color: '#fff',
                 padding: '12px 24px',
+                whiteSpace: 'nowrap',
+                minWidth: 'max-content',
+                maxWidth: '100%',
               },
               success: {
                 iconTheme: {

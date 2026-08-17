@@ -36,9 +36,15 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 const authMiddleware = require('./middleware/auth');
 const notebookRoutes = require('./modules/notebooks/routes/notebookRoutes');
 const noteRoutes = require('./modules/notes/routes/noteRoutes');
+const noteCategoryRoutes = require('./modules/noteCategories/routes/noteCategoryRoutes');
+const notebookCategoryRoutes = require('./modules/notebookCategories/routes/notebookCategoryRoutes');
+const searchRoutes = require('./modules/search/routes/searchRoutes');
 
 app.use('/api/notebooks', authMiddleware, notebookRoutes);
 app.use('/api/notes', authMiddleware, noteRoutes);
+app.use('/api/note-categories', authMiddleware, noteCategoryRoutes);
+app.use('/api/notebook-categories', authMiddleware, notebookCategoryRoutes);
+app.use('/api/search', authMiddleware, searchRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

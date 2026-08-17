@@ -1,3 +1,5 @@
+import AppButton from '../ui/AppButton';
+
 export default function EmptyState({ title, description, icon, actionLabel, onAction }) {
   return (
     <div className="d-flex flex-column align-items-center justify-content-center text-center py-5 mt-4 animate-fade-slide-up w-100">
@@ -12,13 +14,14 @@ export default function EmptyState({ title, description, icon, actionLabel, onAc
       <p className="text-secondary mb-4 opacity-75">{description}</p>
       
       {actionLabel && onAction && (
-        <button 
-          className="btn btn-dark rounded-pill px-4 py-2 fw-semibold shadow-sm hover-lift mt-2"
+        <AppButton 
+          variant="dark"
+          className="shadow-sm hover-lift mt-2 py-2"
           onClick={onAction}
+          icon="bi-plus-lg"
         >
-          <i className="bi bi-plus-lg me-2"></i>
           {actionLabel}
-        </button>
+        </AppButton>
       )}
     </div>
   );

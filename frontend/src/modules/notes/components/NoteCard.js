@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+import AppBadge from '../../../shared/ui/AppBadge';
+import AppButton from '../../../shared/ui/AppButton';
 
-export default function NoteCard({ title, content, date, isPinned, isFlashcardMode, onTogglePin, onEdit, onDelete, onClick }) {
+export default function NoteCard({ title, content, date, isPinned, isFlashcardMode, category, onTogglePin, onEdit, onDelete, onClick }) {
   const [isHovered, setIsHovered] = useState(false);
+
 
   return (
     <div 
@@ -12,26 +15,39 @@ export default function NoteCard({ title, content, date, isPinned, isFlashcardMo
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="card-body p-4 d-flex flex-column bg-white">
-        <div className="d-flex justify-content-between align-items-start mb-3">
-          <h4 className="card-title fw-bolder text-dark mb-0 pe-2">
+        <div className="mb-3 position-relative">
+          <h4 className="card-title fw-bolder text-dark mb-0 pe-4">
             {title ? title.charAt(0).toUpperCase() + title.slice(1) : ''}
           </h4>
           {onTogglePin && (
-            <button 
-              className={`btn btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center flex-shrink-0 ${isPinned ? 'text-warning' : 'text-secondary opacity-25 hover-opacity-100'}`}
-              style={{ width: '32px', height: '32px', transition: 'all 0.2s' }}
+            <button
+              type="button"
+              className={`btn btn-link p-0 d-flex align-items-center justify-content-center text-decoration-none shadow-none border-0 position-absolute ${isPinned ? 'text-warning' : 'text-secondary opacity-25'}`}
+              style={{ top: '0px', right: '-4px', width: '28px', height: '28px', transition: 'all 0.2s', zIndex: 2, lineHeight: 1 }}
               onClick={(e) => {
                 e.stopPropagation();
                 onTogglePin();
               }}
               title={isPinned ? "Unpin note" : "Pin note"}
             >
-              <i className={isPinned ? "bi bi-pin-angle-fill fs-5" : "bi bi-pin-angle fs-5"}></i>
+              <i className={`bi ${isPinned ? 'bi-pin-angle-fill' : 'bi-pin-angle'} fs-5`}></i>
             </button>
           )}
         </div>
+        
+        {category && (
+          <div className="mb-3">
+            <AppBadge 
+              color={category.color} 
+              className="px-2 py-1 fw-medium"
+            >
+              {category.name}
+            </AppBadge>
+          </div>
+        )}
+
         <div 
-          className={`card-text mb-4 flex-grow-1 fs-6 ${isFlashcardMode && !isHovered ? 'bg-flashcard rounded' : 'text-secondary'}`} 
+          className={`card-text mb-4 flex-grow-1 fs-6 text-secondary ${isFlashcardMode && !isHovered ? 'bg-flashcard rounded' : ''}`} 
           style={{
             display: '-webkit-box',
             WebkitLineClamp: '3',
@@ -40,11 +56,7 @@ export default function NoteCard({ title, content, date, isPinned, isFlashcardMo
             textOverflow: 'ellipsis',
             whiteSpace: 'pre-wrap',
             lineHeight: '1.6',
-            transition: 'all 0.3s ease',
-            ...(isFlashcardMode && !isHovered ? {
-              color: 'transparent',
-              userSelect: 'none'
-            } : {})
+            transition: 'background-color 0.3s ease, color 0.3s ease'
           }}
         >
           {content}
@@ -57,34 +69,30 @@ export default function NoteCard({ title, content, date, isPinned, isFlashcardMo
           
           <div className="d-flex gap-2">
             {onEdit && (
-              <button 
-                className="btn btn-light bg-light border-0 rounded-circle p-0 d-flex align-items-center justify-content-center text-secondary flex-shrink-0 hover-opacity"
-                style={{ width: '36px', height: '36px', transition: 'background-color 0.2s' }}
-                onMouseEnter={(e) => { e.currentTarget.classList.replace('bg-light', 'bg-secondary'); e.currentTarget.classList.replace('text-secondary', 'text-white'); }}
-                onMouseLeave={(e) => { e.currentTarget.classList.replace('bg-secondary', 'bg-light'); e.currentTarget.classList.replace('text-white', 'text-secondary'); }}
+              <AppButton 
+                variant="light"
+                className="bg-light border-0 rounded-circle p-0 d-flex align-items-center justify-content-center text-secondary flex-shrink-0 hover-bg-secondary hover-text-white transition-all"
+                style={{ width: '36px', height: '36px' }}
                 onClick={(e) => {
                   e.stopPropagation();
                   onEdit();
                 }}
                 title="Edit note"
-              >
-                <i className="bi bi-pencil-square fs-6"></i>
-              </button>
+                icon="bi-pencil-square fs-6"
+              />
             )}
             {onDelete && (
-              <button 
-                className="btn btn-light bg-light border-0 rounded-circle p-0 d-flex align-items-center justify-content-center text-danger flex-shrink-0 hover-opacity"
-                style={{ width: '36px', height: '36px', transition: 'background-color 0.2s' }}
-                onMouseEnter={(e) => { e.currentTarget.classList.replace('bg-light', 'bg-danger'); e.currentTarget.classList.replace('text-danger', 'text-white'); }}
-                onMouseLeave={(e) => { e.currentTarget.classList.replace('bg-danger', 'bg-light'); e.currentTarget.classList.replace('text-white', 'text-danger'); }}
+              <AppButton 
+                variant="light"
+                className="bg-light border-0 rounded-circle p-0 d-flex align-items-center justify-content-center text-danger flex-shrink-0 hover-bg-danger hover-text-white transition-all"
+                style={{ width: '36px', height: '36px' }}
                 onClick={(e) => {
                   e.stopPropagation();
                   onDelete();
                 }}
                 title="Delete note"
-              >
-                <i className="bi bi-trash3 fs-6"></i>
-              </button>
+                icon="bi-trash3 fs-6"
+              />
             )}
           </div>
         </div>
