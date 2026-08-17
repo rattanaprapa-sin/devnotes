@@ -1,17 +1,30 @@
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { supabase } from '../../../../config/supabase';
 import { useNavigate } from 'react-router-dom';
+import AppInput from '../../../../shared/ui/AppInput';
+import AppButton from '../../../../shared/ui/AppButton';
 
 export default function ResetPasswordForm() {
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
-  
   const navigate = useNavigate();
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors }
+  } = useForm({
+    defaultValues: {
+      password: '',
+      confirmPassword: ''
+    }
+  });
+
+  const passwordValue = watch('password');
 
   useEffect(() => {
     // Check if user is actually in a recovery session
@@ -24,22 +37,16 @@ export default function ResetPasswordForm() {
     checkSession();
   }, []);
 
-  const handleReset = async (e) => {
-    e.preventDefault();
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-
+  const onSubmit = async (data) => {
     setLoading(true);
     setError(null);
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: password
+      const { error: supabaseError } = await supabase.auth.updateUser({
+        password: data.password
       });
 
-      if (error) throw error;
+      if (supabaseError) throw supabaseError;
       
       setSuccess(true);
       setTimeout(() => {
@@ -75,63 +82,46 @@ export default function ResetPasswordForm() {
               Password updated successfully!
             </div>
             <p className="text-secondary small">Redirecting to home...</p>
-            <button className="btn btn-dark w-100 rounded-pill py-2" onClick={() => navigate('/')}>
+            <AppButton variant="dark" className="w-100 rounded-pill py-2 mt-2" onClick={() => navigate('/')}>
               Go to Home now
-            </button>
+            </AppButton>
           </div>
         ) : (
-          <form onSubmit={handleReset}>
-            <div className="mb-3">
-              <label className="form-label text-dark opacity-75 small fw-medium">New Password</label>
-              <div className="position-relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  className="form-control rounded-3 py-2 shadow-none border-secondary pe-5"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                />
-                <button 
-                  type="button"
-                  className="btn btn-link position-absolute end-0 top-50 translate-middle-y text-secondary text-decoration-none"
-                  onClick={() => setShowPassword(!showPassword)}
-                  tabIndex="-1"
-                >
-                  {showPassword ? (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                  ) : (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                  )}
-                </button>
-              </div>
-            </div>
-            <div className="mb-4">
-              <label className="form-label text-dark opacity-75 small fw-medium">Confirm New Password</label>
-              <div className="position-relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  className="form-control rounded-3 py-2 shadow-none border-secondary pe-5"
-                  placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  minLength={6}
-                />
-              </div>
-            </div>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <AppInput
+              type="password"
+              label="New Password"
+              placeholder="••••••••"
+              {...register('password', {
+                required: 'Password is required',
+                minLength: { value: 6, message: 'Password must be at least 6 characters' }
+              })}
+              error={errors.password?.message}
+              className="border-secondary"
+            />
+            
+            <AppInput
+              type="password"
+              label="Confirm New Password"
+              placeholder="••••••••"
+              {...register('confirmPassword', {
+                required: 'Confirm password is required',
+                validate: (value) => value === passwordValue || 'Passwords do not match'
+              })}
+              error={errors.confirmPassword?.message}
+              className="border-secondary"
+            />
 
-            <button
+            <AppButton
               type="submit"
-              className="btn btn-dark w-100 rounded-pill py-2"
+              variant="dark"
+              className="w-100 rounded-pill py-2 mt-2"
               disabled={loading || !!error}
+              isLoading={loading}
+              loadingText="Updating..."
             >
-              {loading ? (
-                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              ) : null}
               Update Password
-            </button>
+            </AppButton>
           </form>
         )}
       </div>

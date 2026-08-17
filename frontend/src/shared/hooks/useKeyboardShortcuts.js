@@ -1,12 +1,8 @@
 import { useEffect } from 'react';
 
-export default function useKeyboardShortcuts({
-  onSearch,
-  onNew
-} = {}) {
+export default function useKeyboardShortcuts() {
   useEffect(() => {
     const handleKeyDown = (e) => {
-      const isInput = ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName);
 
       // Ctrl/Cmd + K
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
@@ -24,5 +20,5 @@ export default function useKeyboardShortcuts({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onSearch]);
+  }, []);
 }

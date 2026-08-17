@@ -23,10 +23,14 @@ const { createResponse } = require('../../../utils/responseHandler');
 const getNotebooks = async (req, res, next) => {
   try {
     if (!req.supabase) throw new Error('Supabase not configured');
-    const { page, limit } = req.query;
-    const result = await notebookService.getNotebooks(req.supabase, { 
+    const { page, limit, categoryId, search } = req.query;
+    const userId = req.user?.id;
+    if (!userId) throw new Error('Unauthorized');
+    const result = await notebookService.getNotebooks(req.supabase, userId, { 
       page: parseInt(page) || 1, 
-      limit: parseInt(limit) || 12 
+      limit: parseInt(limit) || 12,
+      categoryId,
+      search
     });
     res.json(createResponse(true, 'Notebooks retrieved successfully', result));
   } catch (error) {
@@ -81,6 +85,8 @@ const getNotebookById = async (req, res, next) => {
  *                 type: string
  *               category:
  *                 type: string
+ *               categoryId:
+ *                 type: string
  *               description:
  *                 type: string
  *     responses:
@@ -92,43 +98,6 @@ const createNotebook = async (req, res, next) => {
     if (!req.supabase) throw new Error('Supabase not configured');
     const result = await notebookService.createNotebook(req.supabase, req.user.id, req.body);
     res.status(201).json(createResponse(true, 'Notebook created successfully', result));
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * @swagger
- * /api/notebooks/{id}/pin:
- *   post:
- *     summary: Toggle pin status of a notebook
- *     tags: [Notebooks]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               is_pinned:
- *                 type: boolean
- *     responses:
- *       200:
- *         description: Pin status updated
- */
-const togglePinNotebook = async (req, res, next) => {
-  try {
-    if (!req.supabase) throw new Error('Supabase not configured');
-    const result = await notebookService.togglePinNotebook(req.supabase, req.params.id, req.body.is_pinned);
-    res.json(createResponse(true, 'Notebook pin status updated', result));
   } catch (error) {
     next(error);
   }
@@ -158,6 +127,8 @@ const togglePinNotebook = async (req, res, next) => {
  *               title:
  *                 type: string
  *               category:
+ *                 type: string
+ *               categoryId:
  *                 type: string
  *               description:
  *                 type: string
@@ -207,7 +178,6 @@ module.exports = {
   getNotebooks,
   getNotebookById,
   createNotebook,
-  togglePinNotebook,
   updateNotebook,
   deleteNotebook
 };

@@ -3,6 +3,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import SyntaxHighlighter from 'react-syntax-highlighter/dist/esm/prism-light';
 import vscDarkPlus from 'react-syntax-highlighter/dist/esm/styles/prism/vsc-dark-plus';
+import AppButton from '../../../shared/ui/AppButton';
+import AppBadge from '../../../shared/ui/AppBadge';
 
 // Import and register common languages for PrismLight to dramatically reduce bundle size / chunk count
 import javascript from 'react-syntax-highlighter/dist/esm/languages/prism/javascript';
@@ -38,7 +40,7 @@ SyntaxHighlighter.registerLanguage('java', java);
 SyntaxHighlighter.registerLanguage('cpp', cpp);
 SyntaxHighlighter.registerLanguage('c++', cpp);
 
-export default function ViewNoteModal({ show, onClose, noteData, hasNext, hasPrev, onNext, onPrev, isFlashcardMode }) {
+export default function ViewNoteModal({ show, onClose, noteData, categoryObj, hasNext, hasPrev, onNext, onPrev, isFlashcardMode }) {
   const [isHidden, setIsHidden] = useState(isFlashcardMode || false);
 
   // Reset hide state based on global mode when note changes
@@ -63,33 +65,35 @@ export default function ViewNoteModal({ show, onClose, noteData, hasNext, hasPre
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [show, hasNext, hasPrev, onNext, onPrev]);
+  }, [show, hasNext, hasPrev, onNext, onPrev, onClose]);
 
   if (!show || !noteData) return null;
 
   return (
-    <div className="modal d-block bg-dark bg-opacity-50" tabIndex="-1" onClick={onClose} style={{ transition: 'opacity 0.2s', backdropFilter: 'blur(4px)' }}>
+    <div className="modal d-block bg-dark bg-opacity-50" tabIndex="-1" onClick={onClose} style={{ transition: 'opacity 0.2s', backdropFilter: 'blur(8px)' }}>
       <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg position-relative" onClick={e => e.stopPropagation()}>
         
         {/* Floating Prev Button (Desktop only) */}
-        <button 
-          className="btn btn-light position-absolute top-50 translate-middle-y rounded-circle shadow-lg d-none d-md-flex align-items-center justify-content-center text-dark hover-opacity"
+        <AppButton 
+          variant="light"
+          className="position-absolute top-50 translate-middle-y rounded-circle shadow-lg d-none d-md-flex align-items-center justify-content-center text-dark hover-opacity p-0"
           style={{ left: '-76px', width: '56px', height: '56px', zIndex: 1060, visibility: hasPrev ? 'visible' : 'hidden', transition: 'all 0.2s', pointerEvents: 'auto' }}
           onClick={(e) => { e.stopPropagation(); onPrev(); }}
           title="Previous Note"
         >
           <i className="bi bi-chevron-left fs-4"></i>
-        </button>
+        </AppButton>
 
         {/* Floating Next Button (Desktop only) */}
-        <button 
-          className="btn btn-light position-absolute top-50 translate-middle-y rounded-circle shadow-lg d-none d-md-flex align-items-center justify-content-center text-dark hover-opacity"
+        <AppButton 
+          variant="light"
+          className="position-absolute top-50 translate-middle-y rounded-circle shadow-lg d-none d-md-flex align-items-center justify-content-center text-dark hover-opacity p-0"
           style={{ right: '-76px', width: '56px', height: '56px', zIndex: 1060, visibility: hasNext ? 'visible' : 'hidden', transition: 'all 0.2s', pointerEvents: 'auto' }}
           onClick={(e) => { e.stopPropagation(); onNext(); }}
           title="Next Note"
         >
           <i className="bi bi-chevron-right fs-4"></i>
-        </button>
+        </AppButton>
 
         <div className="modal-content rounded-4 shadow-lg border-0 animate-pop-in-bounce">
           <div className="modal-header border-bottom pb-3 pt-4 px-4 flex-column align-items-stretch">
@@ -105,32 +109,41 @@ export default function ViewNoteModal({ show, onClose, noteData, hasNext, hasPre
               ></button>
             </div>
             <div className="d-flex align-items-center justify-content-between">
-              <div className="d-flex align-items-center text-secondary small fw-medium">
-                <i className="bi bi-calendar3 me-2"></i>
-                {new Date(noteData.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              <div className="d-flex align-items-center gap-3">
+                {categoryObj && (
+                  <AppBadge 
+                    color={categoryObj.color} 
+                    className="px-2 py-1 shadow-sm border" 
+                  >
+                    {categoryObj.name}
+                  </AppBadge>
+                )}
+                <div className="d-flex align-items-center text-secondary small fw-medium">
+                  <i className="bi bi-calendar3 me-2"></i>
+                  {new Date(noteData.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                </div>
               </div>
-              <button 
-                className={`btn btn-sm rounded-pill fw-medium d-flex align-items-center gap-1 transition-all ${isHidden ? 'btn-dark' : 'btn-outline-secondary'}`}
+              <AppButton 
+                variant={isHidden ? 'dark' : 'outline-secondary'}
+                size="sm"
+                className="rounded-pill fw-medium d-flex align-items-center gap-1 transition-all"
                 onClick={() => setIsHidden(!isHidden)}
                 style={{ transition: 'all 0.2s' }}
+                icon={isHidden ? 'bi-eye-fill' : 'bi-eye-slash'}
               >
-                <i className={`bi ${isHidden ? 'bi-eye-fill' : 'bi-eye-slash'}`}></i>
                 {isHidden ? 'Show Content' : 'Hide Content'}
-              </button>
+              </AppButton>
             </div>
           </div>
           <div className="modal-body px-4 py-4 bg-light">
             <div 
-              className={`fs-6 lh-base text-break p-4 rounded-4 shadow-sm border ${isHidden ? 'bg-flashcard overflow-hidden' : 'bg-white text-dark overflow-auto'}`} 
+              className={`fs-6 lh-base text-break p-4 rounded-4 shadow-sm border bg-white text-dark ${isHidden ? 'bg-flashcard overflow-hidden' : 'overflow-auto'}`} 
               style={{ 
-                minHeight: '150px', 
+                minHeight: '150px',
                 maxHeight: isHidden ? '150px' : '65vh',
-                transition: 'max-height 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.3s ease',
-                ...(isHidden ? {
-                  color: 'transparent',
-                  userSelect: 'none',
-                  cursor: 'pointer'
-                } : {})
+                whiteSpace: 'pre-wrap',
+                cursor: isFlashcardMode ? 'pointer' : 'text',
+                transition: 'max-height 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.3s ease, color 0.3s ease'
               }}
               onClick={() => {
                 if (isHidden) setIsHidden(false);
@@ -143,17 +156,18 @@ export default function ViewNoteModal({ show, onClose, noteData, hasNext, hasPre
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
-                    code({node, inline, className, children, ...props}) {
+                    code({inline, className, children, ...props}) {
                       const match = /language-(\w+)/.exec(className || '')
                       return !inline && match ? (
                         <SyntaxHighlighter
                           {...props}
-                          children={String(children).replace(/\n$/, '')}
                           style={vscDarkPlus}
                           language={match[1]}
                           PreTag="div"
                           className="rounded-3 shadow-sm my-3 fs-6"
-                        />
+                        >
+                          {String(children).replace(/\n$/, '')}
+                        </SyntaxHighlighter>
                       ) : (
                         <code {...props} className="bg-secondary bg-opacity-10 text-primary px-1 rounded">
                           {children}
@@ -169,28 +183,30 @@ export default function ViewNoteModal({ show, onClose, noteData, hasNext, hasPre
           </div>
           <div className="modal-footer border-top px-4 py-3 bg-white d-flex justify-content-between">
             <div className="d-flex gap-2 d-md-none">
-              <button 
-                className="btn btn-light border-0 rounded-circle shadow-sm d-flex align-items-center justify-content-center text-secondary hover-opacity"
+              <AppButton 
+                variant="light"
+                className="border-0 rounded-circle shadow-sm d-flex align-items-center justify-content-center text-secondary hover-opacity p-0"
                 style={{ width: '40px', height: '40px', transition: 'all 0.2s' }}
                 onClick={onPrev}
                 disabled={!hasPrev}
                 title="Previous Note"
               >
                 <i className="bi bi-chevron-left fs-5"></i>
-              </button>
-              <button 
-                className="btn btn-light border-0 rounded-circle shadow-sm d-flex align-items-center justify-content-center text-secondary hover-opacity"
+              </AppButton>
+              <AppButton 
+                variant="light"
+                className="border-0 rounded-circle shadow-sm d-flex align-items-center justify-content-center text-secondary hover-opacity p-0"
                 style={{ width: '40px', height: '40px', transition: 'all 0.2s' }}
                 onClick={onNext}
                 disabled={!hasNext}
                 title="Next Note"
               >
                 <i className="bi bi-chevron-right fs-5"></i>
-              </button>
+              </AppButton>
             </div>
-            <button className="btn btn-dark rounded-pill px-5 fw-medium shadow-sm ms-auto" onClick={onClose}>
+            <AppButton variant="dark" className="rounded-pill px-5 fw-medium shadow-sm ms-auto" onClick={onClose}>
               Close
-            </button>
+            </AppButton>
           </div>
         </div>
       </div>

@@ -27,7 +27,7 @@ export default function useRealtimeSync() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'notebooks' },
-        (payload) => {
+        () => {
           // Whenever notebooks table changes, refetch notebooks list globally
           dispatch(fetchNotebooks({ page: notebooksPage, limit: notebooksLimit }));
         }

@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
+import useLocalStorage from '../shared/hooks/useLocalStorage';
 
 const ThemeContext = createContext();
 
@@ -7,21 +8,14 @@ export function useTheme() {
 }
 
 export function ThemeProvider({ children }) {
-  const [theme, setThemeState] = useState(() => {
-    return localStorage.getItem('theme_v4') || 'light';
-  });
+  const [theme, setTheme] = useLocalStorage('theme_v4', 'light');
 
   useEffect(() => {
     document.documentElement.setAttribute('data-bs-theme', theme);
-    localStorage.setItem('theme_v4', theme);
   }, [theme]);
 
   const toggleTheme = () => {
-    setThemeState((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
-  };
-
-  const setTheme = (newTheme) => {
-    setThemeState(newTheme);
+    setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
   };
 
   return (

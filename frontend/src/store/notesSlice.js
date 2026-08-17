@@ -20,6 +20,14 @@ export const fetchNotebookDetails = createAsyncThunk(
   }
 );
 
+export const fetchFilteredNotes = createAsyncThunk(
+  'notes/fetchFilteredNotes',
+  async ({ notebookId, page = 1, limit = 12, categoryId, search }) => {
+    const response = await getNotes(notebookId, { page, limit, categoryId, search });
+    return response;
+  }
+);
+
 export const addNote = createAsyncThunk(
   'notes/addNote',
   async (data) => {
@@ -57,6 +65,7 @@ const notesSlice = createSlice({
   initialState: {
     currentNotebook: null,
     items: [],
+    usedCategoryIds: [],
     status: 'idle',
     error: null,
     pagination: {
@@ -70,6 +79,7 @@ const notesSlice = createSlice({
     clearCurrentNotebook: (state) => {
       state.currentNotebook = null;
       state.items = [];
+      state.usedCategoryIds = [];
       state.status = 'idle';
       state.pagination = {
         currentPage: 1,
@@ -88,6 +98,7 @@ const notesSlice = createSlice({
         state.status = 'succeeded';
         state.currentNotebook = action.payload.notebook;
         state.items = action.payload.notes.data;
+        state.usedCategoryIds = action.payload.notes.usedCategoryIds || [];
         state.pagination = {
           currentPage: action.payload.notes.page,
           totalPages: Math.ceil(action.payload.notes.count / action.payload.notes.limit) || 1,
@@ -96,6 +107,24 @@ const notesSlice = createSlice({
         };
       })
       .addCase(fetchNotebookDetails.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message;
+      })
+      .addCase(fetchFilteredNotes.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchFilteredNotes.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.items = action.payload.data;
+        state.usedCategoryIds = action.payload.usedCategoryIds || [];
+        state.pagination = {
+          currentPage: action.payload.page,
+          totalPages: Math.ceil(action.payload.count / action.payload.limit) || 1,
+          totalItems: action.payload.count,
+          limit: action.payload.limit
+        };
+      })
+      .addCase(fetchFilteredNotes.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.error.message;
       })

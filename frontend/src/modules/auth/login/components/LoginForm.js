@@ -1,62 +1,84 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { supabase } from '../../../../config/supabase';
 import { useNavigate } from 'react-router-dom';
 import SuccessModal from '../../../../shared/components/SuccessModal';
 import ForgotPasswordModal from './ForgotPasswordModal';
+import useModal from '../../../../shared/hooks/useModal';
+import AppInput from '../../../../shared/ui/AppInput';
+import AppButton from '../../../../shared/ui/AppButton';
 
 export default function LoginForm() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [showForgotModal, setShowForgotModal] = useState(false);
+  const successModal = useModal(false);
+  const forgotModal = useModal(false);
   const [isSignUp, setIsSignUp] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
-  
   const navigate = useNavigate();
 
-  const handleAuth = async (e) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    clearErrors,
+    formState: { errors }
+  } = useForm({
+    defaultValues: {
+      email: '',
+      password: '',
+      confirmPassword: '',
+      displayName: ''
+    }
+  });
+
+  const passwordValue = watch('password');
+
+  useEffect(() => {
+    // Clear errors when toggling sign in / sign up
+    clearErrors();
+    setError(null);
+  }, [isSignUp, clearErrors]);
+
+  const onSubmit = async (data) => {
     setLoading(true);
     setError(null);
 
     try {
       if (isSignUp) {
-        if (password !== confirmPassword) {
+        if (data.password !== data.confirmPassword) {
           throw new Error("Passwords do not match");
         }
         
         const { error } = await supabase.auth.signUp({
-          email,
-          password,
+          email: data.email,
+          password: data.password,
           options: {
             data: {
-              display_name: displayName,
+              display_name: data.displayName,
             }
           }
         });
         if (error) throw error;
-        setShowSuccessModal(true);
+        successModal.open();
         setIsSignUp(false);
+        reset();
       } else {
         const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
+          email: data.email,
+          password: data.password,
         });
         if (error) throw error;
         navigate('/');
       }
-    } catch (error) {
-      if (error.message === 'Invalid login credentials') {
+    } catch (err) {
+      if (err.message === 'Invalid login credentials') {
         setError('Incorrect email or password. Please try again.');
-      } else if (error.message === 'User already registered') {
+      } else if (err.message === 'User already registered') {
         setError('An account with this email already exists.');
       } else {
-        setError(error.message);
+        setError(err.message);
       }
     } finally {
       setLoading(false);
@@ -90,10 +112,7 @@ export default function LoginForm() {
           <button 
             type="button" 
             className={`btn flex-grow-1 border-0 rounded-pill position-relative fw-semibold py-2 ${!isSignUp ? 'text-dark' : 'text-secondary'}`}
-            onClick={() => {
-              setIsSignUp(false);
-              setError(null);
-            }}
+            onClick={() => setIsSignUp(false)}
             style={{ zIndex: 1 }}
           >
             Sign In
@@ -101,10 +120,7 @@ export default function LoginForm() {
           <button 
             type="button" 
             className={`btn flex-grow-1 border-0 rounded-pill position-relative fw-semibold py-2 ${isSignUp ? 'text-dark' : 'text-secondary'}`}
-            onClick={() => {
-              setIsSignUp(true);
-              setError(null);
-            }}
+            onClick={() => setIsSignUp(true)}
             style={{ zIndex: 1 }}
           >
             Sign Up
@@ -117,101 +133,91 @@ export default function LoginForm() {
           </div>
         )}
 
-        <form onSubmit={handleAuth}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div 
             className="overflow-hidden"
             style={{ 
-              maxHeight: isSignUp ? '90px' : '0', 
+              maxHeight: isSignUp ? '100px' : '0', 
               opacity: isSignUp ? 1 : 0, 
               transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' 
             }}
           >
-            <div className="mb-3">
-              <label className="form-label text-dark opacity-75 small fw-medium">Display Name</label>
-              <input
-                type="text"
-                className="form-control rounded-3 py-2 shadow-none border-secondary"
-                placeholder="How should we call you?"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                required={isSignUp}
-                tabIndex={isSignUp ? 0 : -1}
-              />
-            </div>
-          </div>
-          <div className="mb-3">
-            <label className="form-label text-dark opacity-75 small fw-medium">Email address</label>
-            <input
-              type="email"
-              className="form-control rounded-3 py-2 shadow-none border-secondary"
-              placeholder="name@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
+            <AppInput
+              label="Display Name"
+              placeholder="How should we call you?"
+              {...register('displayName', {
+                required: isSignUp ? 'Display name is required' : false,
+                minLength: { value: 2, message: 'Must be at least 2 characters' }
+              })}
+              error={errors.displayName?.message}
+              tabIndex={isSignUp ? 0 : -1}
+              className="border-dark"
             />
           </div>
-          <div className={isSignUp ? "mb-3" : "mb-4"}>
-            <div className="mb-2">
-              <label className="form-label text-dark opacity-75 small fw-medium mb-0">Password</label>
-            </div>
-            <div className="position-relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                className="form-control rounded-3 py-2 shadow-none border-secondary pe-5"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              <button 
-                type="button"
-                className="btn btn-link position-absolute end-0 top-50 translate-middle-y text-secondary text-decoration-none"
-                onClick={() => setShowPassword(!showPassword)}
-                tabIndex="-1"
-              >
-                {showPassword ? (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                ) : (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                )}
-              </button>
-            </div>
-          </div>
+          
+          <AppInput
+            label="Email address"
+            type="email"
+            placeholder="name@example.com"
+            {...register('email', {
+              required: 'Email is required',
+              onChange: (e) => {
+                e.target.value = e.target.value.replace(/[^a-zA-Z0-9@._%+-]/g, '');
+              },
+              pattern: {
+                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                message: 'Invalid email address'
+              }
+            })}
+            error={errors.email?.message}
+            className="border-dark"
+          />
+
+          <AppInput
+            label="Password"
+            type="password"
+            placeholder="••••••••"
+            {...register('password', {
+              required: 'Password is required',
+              minLength: { value: 6, message: 'Password must be at least 6 characters' }
+            })}
+            error={errors.password?.message}
+            className="border-dark"
+          />
           
           <div 
             className="overflow-hidden"
             style={{ 
-              maxHeight: isSignUp ? '90px' : '0', 
+              maxHeight: isSignUp ? '100px' : '0', 
               opacity: isSignUp ? 1 : 0, 
               transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' 
             }}
           >
-            <div className="mb-4">
-              <label className="form-label text-dark opacity-75 small fw-medium">Confirm Password</label>
-              <div className="position-relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  className="form-control rounded-3 py-2 shadow-none border-secondary pe-5"
-                  placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required={isSignUp}
-                  tabIndex={isSignUp ? 0 : -1}
-                />
-              </div>
-            </div>
+            <AppInput
+              label="Confirm Password"
+              type="password"
+              placeholder="••••••••"
+              {...register('confirmPassword', {
+                required: isSignUp ? 'Confirm password is required' : false,
+                validate: (value) => {
+                  if (!isSignUp) return true;
+                  return value === passwordValue || 'Passwords do not match';
+                }
+              })}
+              error={errors.confirmPassword?.message}
+              tabIndex={isSignUp ? 0 : -1}
+              className="border-dark"
+            />
           </div>
 
-          <button
+          <AppButton
             type="submit"
-            className="btn btn-dark w-100 rounded-pill py-2 mb-2"
-            disabled={loading}
+            variant="dark"
+            className="w-100 py-2 mb-2"
+            isLoading={loading}
           >
-            {loading ? (
-              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-            ) : null}
             {isSignUp ? 'Create Account' : 'Sign In'}
-          </button>
+          </AppButton>
           
           <div 
             className="text-center overflow-hidden"
@@ -226,7 +232,7 @@ export default function LoginForm() {
               type="button" 
               className="btn btn-link p-0 text-decoration-none text-secondary"
               style={{ fontSize: '0.9rem' }}
-              onClick={() => setShowForgotModal(true)}
+              onClick={() => forgotModal.open()}
               tabIndex="-1"
             >
               Forgot your password?
@@ -236,15 +242,23 @@ export default function LoginForm() {
       </div>
     </div>
       <SuccessModal 
-        show={showSuccessModal} 
-        onClose={() => setShowSuccessModal(false)}
+        show={successModal.isOpen} 
+        onClose={() => successModal.close()}
         title="Account Created!"
-        message="Check your email for the login link (if email confirmation is required) or sign in directly to get started."
+        message={
+          <>
+            Check your email for the login link<br />
+            <span className="opacity-75">(if email confirmation is required)</span><br />
+            <br />
+            or sign in directly to get started.
+          </>
+        }
       />
       <ForgotPasswordModal 
-        show={showForgotModal} 
-        onClose={() => setShowForgotModal(false)}
+        show={forgotModal.isOpen} 
+        onClose={() => forgotModal.close()} 
       />
     </>
   );
 }
+

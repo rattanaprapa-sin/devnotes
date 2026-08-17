@@ -3,17 +3,9 @@ import { getNotebooks, createNotebook as createNotebookApi, togglePinNotebook, u
 
 export const fetchNotebooks = createAsyncThunk(
   'notebooks/fetchNotebooks',
-  async ({ page = 1, limit = 12 } = {}) => {
-    const response = await getNotebooks({ page, limit });
+  async ({ page = 1, limit = 12, categoryId, search } = {}) => {
+    const response = await getNotebooks({ page, limit, categoryId, search });
     return response; // { data, count, page, limit }
-  },
-  {
-    condition: (arg, { getState }) => {
-      const { status } = getState().notebooks;
-      if (status === 'loading') {
-        return false;
-      }
-    }
   }
 );
 
