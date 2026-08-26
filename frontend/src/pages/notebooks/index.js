@@ -51,6 +51,9 @@ export default function NotebookDetail() {
   };
   
   const [isFlashcardMode, setIsFlashcardMode] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  
+
 
   useKeyboardShortcuts();
 
@@ -65,6 +68,42 @@ export default function NotebookDetail() {
 
   const { currentNotebook: notebook, items: notes, usedCategoryIds, status, pagination } = useSelector((state) => state.notes);
   const { items: categories, status: categoryStatus } = useSelector((state) => state.categories.noteCategories);
+
+  const descriptionRef = useRef(null);
+  const containerRef = useRef(null);
+  const [descHeight, setDescHeight] = useState(0);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+
+  useEffect(() => {
+    if (!descriptionRef.current || !notebook?.description) return;
+
+    const checkOverflow = () => {
+      if (descriptionRef.current) {
+        const innerHeight = descriptionRef.current.scrollHeight;
+        setDescHeight(innerHeight);
+        
+        // Calculate the threshold based on 3.6rem
+        const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+        const threshold = 3.6 * rootFontSize;
+        
+        // Add a small 2px buffer for rounding discrepancies
+        setIsOverflowing(innerHeight > threshold + 2);
+      }
+    };
+
+    checkOverflow();
+
+    const observer = new ResizeObserver(checkOverflow);
+    observer.observe(descriptionRef.current);
+    
+    // Also re-check on window resize in case root font size changes
+    window.addEventListener('resize', checkOverflow);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', checkOverflow);
+    };
+  }, [notebook?.description]);
 
   useEffect(() => {
     if (id) {
@@ -196,18 +235,16 @@ export default function NotebookDetail() {
     <>
       <Header />
       <div className="container pb-5">
-      <AppButton
-        variant="light"
-        className="text-secondary border shadow-sm mb-4 mt-3 px-3 py-2"
-        onClick={() => navigate('/')}
-        style={{ transition: 'all 0.2s' }}
-        icon="bi-arrow-left"
-      >
-        Back to Dashboard
-      </AppButton>
-
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
-        <div className="d-flex align-items-center gap-3">
+      <div className="row g-3 align-items-center mb-4 pb-4 pt-4 border-bottom">
+        <div className="col-12 col-md d-flex align-items-center gap-3 order-1">
+          <button
+            onClick={() => navigate('/')}
+            className={`btn btn-link p-0 border-0 d-flex align-items-center justify-content-center flex-shrink-0 text-decoration-none opacity-75 hover-opacity-100 ${theme === 'dark' ? 'text-light' : 'text-secondary'}`}
+            style={{ transition: 'opacity 0.2s' }}
+            title="Back to Dashboard"
+          >
+            <i className="bi bi-arrow-left fs-4"></i>
+          </button>
           <h1 className="fw-bolder display-5 mb-0 text-dark">
             {notebook.title ? notebook.title.charAt(0).toUpperCase() + notebook.title.slice(1) : ''}
           </h1>
@@ -231,92 +268,148 @@ export default function NotebookDetail() {
           </span>
         </div>
         
-        <div className="d-flex flex-wrap align-items-center gap-3 mt-2 mt-md-0">
-          <div className="form-check form-switch d-flex align-items-center gap-2 m-0 p-0" title="Hide contents to practice your memory">
-            <input 
-              className="form-check-input m-0 shadow-sm" 
-              type="checkbox" 
-              role="switch" 
-              id="flashcardSwitch" 
-              checked={isFlashcardMode} 
-              onChange={(e) => setIsFlashcardMode(e.target.checked)} 
-              style={{ width: '2.5rem', height: '1.25rem', cursor: 'pointer' }} 
-            />
-            <label className="form-check-label fw-semibold text-secondary" htmlFor="flashcardSwitch" style={{ cursor: 'pointer', userSelect: 'none' }}>
-              <i className="bi bi-lightning-charge-fill text-warning me-1"></i>
+        <div className="col-12 col-md-auto d-flex flex-column flex-md-row justify-content-md-end align-items-stretch align-items-md-center gap-3 order-3 order-md-2 mt-4 mt-md-0">
+          <div 
+            className={`w-100 w-md-auto d-flex justify-content-between align-items-center p-2 px-3 rounded-pill ${theme === 'dark' ? 'bg-dark border border-secondary border-opacity-25' : 'bg-light border border-light-subtle shadow-sm'}`} 
+            title="Hide contents to practice your memory"
+            style={{ minHeight: '38px' }}
+          >
+            <label className="form-check-label fw-semibold text-secondary d-flex align-items-center mb-0" htmlFor="flashcardSwitch" style={{ cursor: 'pointer', userSelect: 'none', fontSize: '0.875rem' }}>
+              <i className="bi bi-lightning-charge-fill text-warning me-2"></i>
               Flashcard Mode
             </label>
+            <div className="form-check form-switch m-0 p-0 ms-3 d-flex align-items-center">
+              <input 
+                className="form-check-input m-0 shadow-sm" 
+                type="checkbox" 
+                role="switch" 
+                id="flashcardSwitch" 
+                checked={isFlashcardMode} 
+                onChange={(e) => setIsFlashcardMode(e.target.checked)} 
+                style={{ width: '2.5rem', height: '1.25rem', cursor: 'pointer', marginLeft: 0 }} 
+              />
+            </div>
           </div>
           
-          <AppButton 
-            variant="light"
-            className="bg-white border shadow-sm text-secondary transition-all px-3"
-            onClick={() => categoryManagerModal.open()}
-            style={{ fontSize: '0.875rem', height: '38px' }}
-            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#fff'}
-            icon="bi-tags-fill opacity-75"
-          >
-            Categories
-          </AppButton>
-          
-          <div 
-            className={`d-flex shadow-sm border rounded-pill p-1 position-relative ${
-              theme === 'dark' ? 'bg-dark border-light border-opacity-10' : 
-              theme === 'blue' ? 'bg-white border-primary border-opacity-25' : 
-              'bg-white border-light-subtle'
-            }`} 
-            style={{ width: '160px' }}
-          >
+          <div className="d-flex align-items-center gap-2 w-100 w-md-auto">
+            <AppButton 
+              variant="light"
+              className="bg-white border shadow-sm text-secondary transition-all px-3 flex-grow-1 d-flex justify-content-center"
+              onClick={() => categoryManagerModal.open()}
+              style={{ fontSize: '0.875rem', height: '38px' }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#fff'}
+              icon="bi-tags-fill opacity-75"
+            >
+              Categories
+            </AppButton>
+            
             <div 
-              className={`rounded-pill position-absolute`} 
-              style={{
-                top: '4px',
-                bottom: '4px',
-                left: '4px',
-                width: 'calc(50% - 4px)',
-                transform: viewMode === 'list' ? 'translateX(0)' : 'translateX(100%)',
-                transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s',
-                backgroundColor: theme === 'dark' ? '#ffffff' : theme === 'blue' ? 'var(--bs-primary)' : '#212529',
-                zIndex: 0
-              }}
-            ></div>
-            <button 
-              className={`btn btn-sm rounded-pill flex-grow-1 border-0 ${viewMode === 'list' ? (theme === 'dark' ? 'text-black fw-bold' : 'text-white fw-bold') : 'text-secondary'}`}
-              onClick={() => handleViewModeChange('list')}
-              style={{ transition: 'color 0.3s', zIndex: 1, padding: '0.25rem 0' }}
+              className={`d-flex shadow-sm border rounded-pill p-1 position-relative flex-grow-1 ${
+                theme === 'dark' ? 'bg-dark border-light border-opacity-10' : 
+                theme === 'blue' ? 'bg-white border-primary border-opacity-25' : 
+                'bg-white border-light-subtle'
+              }`} 
+              style={{ minWidth: '160px', height: '38px' }}
             >
-              <i className="bi bi-list me-1"></i> List
-            </button>
-            <button 
-              className={`btn btn-sm rounded-pill flex-grow-1 border-0 ${viewMode === 'grid' ? (theme === 'dark' ? 'text-black fw-bold' : 'text-white fw-bold') : 'text-secondary'}`}
-              onClick={() => handleViewModeChange('grid')}
-              style={{ transition: 'color 0.3s', zIndex: 1, padding: '0.25rem 0' }}
-            >
-              <i className="bi bi-grid me-1"></i> Grid
-            </button>
+              <div 
+                className={`rounded-pill position-absolute`} 
+                style={{
+                  top: '4px',
+                  bottom: '4px',
+                  left: '4px',
+                  width: 'calc(50% - 4px)',
+                  transform: viewMode === 'list' ? 'translateX(0)' : 'translateX(100%)',
+                  transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s',
+                  backgroundColor: theme === 'dark' ? '#ffffff' : theme === 'blue' ? 'var(--bs-primary)' : '#212529',
+                  zIndex: 0
+                }}
+              ></div>
+              <button 
+                className={`btn btn-sm rounded-pill flex-grow-1 border-0 ${viewMode === 'list' ? (theme === 'dark' ? 'text-black fw-bold' : 'text-white fw-bold') : 'text-secondary'}`}
+                onClick={() => handleViewModeChange('list')}
+                style={{ transition: 'color 0.3s', zIndex: 1, padding: '0.25rem 0', fontSize: '0.875rem' }}
+              >
+                <i className="bi bi-list me-1"></i> List
+              </button>
+              <button 
+                className={`btn btn-sm rounded-pill flex-grow-1 border-0 ${viewMode === 'grid' ? (theme === 'dark' ? 'text-black fw-bold' : 'text-white fw-bold') : 'text-secondary'}`}
+                onClick={() => handleViewModeChange('grid')}
+                style={{ transition: 'color 0.3s', zIndex: 1, padding: '0.25rem 0', fontSize: '0.875rem' }}
+              >
+                <i className="bi bi-grid me-1"></i> Grid
+              </button>
+            </div>
           </div>
         </div>
+
+        {notebook.description && (
+          <div className="col-12 order-2 order-md-3 mt-4 mt-md-3">
+            <div 
+              className={`p-4 rounded-4 transition-all ${theme === 'dark' ? 'bg-dark border border-secondary border-opacity-25' : 'bg-light border border-light-subtle'}`}
+              style={{ cursor: isOverflowing ? 'pointer' : 'default' }}
+              onClick={() => isOverflowing && setIsDescriptionExpanded(!isDescriptionExpanded)}
+            >
+              <div ref={containerRef} style={{ 
+                height: isDescriptionExpanded ? (descHeight ? `${descHeight}px` : 'auto') : '3.6rem', 
+                overflow: 'hidden',
+                transition: 'height 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                position: 'relative'
+              }}>
+                <div ref={descriptionRef}>
+                  <p className="text-secondary fs-6 mb-0" style={{ lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
+                    {notebook.description}
+                  </p>
+                </div>
+                {!isDescriptionExpanded && isOverflowing && (
+                  <div 
+                    style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: '2rem',
+                      background: `linear-gradient(transparent, ${theme === 'dark' ? '#212529' : '#f8f9fa'})`,
+                      pointerEvents: 'none'
+                    }}
+                  />
+                )}
+              </div>
+              {isOverflowing && (
+                <div className="text-center mt-2 mb-n2">
+                  <span className="small fw-semibold text-primary" style={{ opacity: 0.85 }}>
+                    {isDescriptionExpanded ? 'Show less' : 'Show more'}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
-      <SearchBar 
-        value={searchQuery} 
-        onChange={setSearchQuery} 
-        placeholder={`Search ${notebook.title ? notebook.title.charAt(0).toUpperCase() + notebook.title.slice(1) : ''} notes...`} 
-      />
+      <div className="row g-3 align-items-center mb-4">
+        <div className="col-12 col-md-4 col-lg-3">
+          <SearchBar 
+            value={searchQuery} 
+            onChange={setSearchQuery} 
+            placeholder={`Search ${notebook.title ? notebook.title.charAt(0).toUpperCase() + notebook.title.slice(1) : ''} notes...`} 
+            className="w-100"
+          />
+        </div>
 
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div 
-          ref={scrollContainerRef}
-          className="d-flex gap-2 overflow-x-auto pb-2 pt-1 custom-scrollbar-hide pe-3"
-          style={{ flex: 1, scrollbarWidth: 'none', msOverflowStyle: 'none', scrollBehavior: isDragging.current ? 'auto' : 'smooth', WebkitOverflowScrolling: 'touch', cursor: 'grab' }}
-          {...events}
-        >
+        <div className="col-12 col-md-8 col-lg-9 d-flex overflow-hidden">
+          <div 
+            ref={scrollContainerRef}
+            className="d-flex gap-2 flex-nowrap overflow-x-auto pb-2 pt-1 custom-scrollbar-hide pe-3 flex-grow-1"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', scrollBehavior: isDragging.current ? 'auto' : 'smooth', WebkitOverflowScrolling: 'touch', cursor: 'grab' }}
+            {...events}
+          >
           <style>{`
             .custom-scrollbar-hide::-webkit-scrollbar { display: none; }
           `}</style>
           <button 
-            className={`btn rounded-pill px-3 py-1 flex-shrink-0 category-filter-btn ${activeCategoryFilter === 'All' ? 'btn-dark fw-semibold shadow-sm' : 'bg-light border text-secondary hover-text-white'}`}
+            className={`btn rounded-pill px-3 py-1 flex-shrink-0 category-filter-btn fw-medium border ${activeCategoryFilter === 'All' ? 'text-white shadow-sm' : 'bg-light text-secondary hover-text-white'}`}
+            style={activeCategoryFilter === 'All' ? { backgroundColor: '#212529', borderColor: '#212529' } : {}}
             onClick={() => handleCategoryClick('All')}
           >
             All
@@ -324,7 +417,7 @@ export default function NotebookDetail() {
           {usedCategories.map(cat => (
             <button 
               key={cat.id}
-              className={`btn rounded-pill px-3 py-1 d-flex align-items-center gap-1 flex-shrink-0 category-filter-btn ${activeCategoryFilter === cat.id ? 'fw-semibold text-white shadow-sm' : 'border'}`}
+              className={`btn rounded-pill px-3 py-1 d-flex align-items-center gap-1 flex-shrink-0 category-filter-btn fw-medium border ${activeCategoryFilter === cat.id ? 'text-white shadow-sm' : ''}`}
               style={{ 
                 transition: 'all 0.2s',
                 backgroundColor: activeCategoryFilter === cat.id ? cat.color : (theme === 'blue' ? 'rgba(255, 255, 255, 0.7)' : (theme === 'dark' ? `${cat.color}4D` : `${cat.color}15`)),
@@ -343,6 +436,7 @@ export default function NotebookDetail() {
           {filteredNotes.length} Note{filteredNotes.length !== 1 ? 's' : ''}
         </div>
       </div>
+    </div>
 
       <div 
         className="row justify-content-center"
@@ -441,9 +535,11 @@ export default function NotebookDetail() {
         />
       )}
 
-      <div className="position-fixed bottom-0 end-0 p-4" style={{ zIndex: 1000 }}>
-        <AddButton onClick={() => addModal.open()} label="New Note" />
-      </div>
+      {notes.length > 0 && (
+        <div className="position-fixed bottom-0 end-0 p-4" style={{ zIndex: 1000 }}>
+          <AddButton onClick={() => addModal.open()} label="New Note" />
+        </div>
+      )}
       
       <AddNoteModal
         show={addModal.isOpen}

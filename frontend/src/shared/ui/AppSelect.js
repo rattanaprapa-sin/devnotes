@@ -18,7 +18,7 @@ const AppSelect = forwardRef(({
   const inputBg = isDark ? 'bg-dark text-white border-light border-opacity-10' : 'bg-light';
 
   return (
-    <div className={`mb-3 ${containerClassName}`}>
+    <div className={containerClassName || 'mb-3'}>
       {label && <label className={`form-label fw-semibold small ${labelColor}`}>{label}</label>}
       <div className="input-group">
         {icon && (
@@ -29,7 +29,7 @@ const AppSelect = forwardRef(({
         <select 
           ref={ref}
           className={`form-select px-3 py-2 ${inputBg} ${icon ? 'border-start-0' : ''} ${error ? 'is-invalid' : ''} ${className}`}
-          style={{ transition: 'all 0.2s', boxShadow: 'none' }}
+          style={{ transition: 'border-color 0.15s, background-color 0.15s', boxShadow: 'none' }}
           {...props}
         >
           {!options.some(opt => opt.value === '') && (

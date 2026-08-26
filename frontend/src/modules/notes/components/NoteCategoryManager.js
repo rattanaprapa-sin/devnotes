@@ -374,30 +374,33 @@ export default function NoteCategoryManager({ show, onClose, onCategoryUpdate })
           <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
             <i className="bi bi-collection"></i> All Categories
           </h6>
-          {isLoading ? (
-            <div className="text-center py-4"><div className="spinner-border text-secondary" role="status"></div></div>
-          ) : categories.length === 0 ? (
-            <div className="text-center py-4 bg-light rounded-4 border-dashed">
-              <i className="bi bi-tags text-secondary fs-1 mb-2 d-block opacity-50"></i>
-              <p className="text-secondary mb-0 fw-medium">No categories yet</p>
-              <small className="text-secondary opacity-75">Create one above to organize your notes</small>
-            </div>
-          ) : (
-            <div
-              className="pe-2"
-              style={{
-                maxHeight: '40vh',
-                overflowY: 'auto',
-                overflowX: 'hidden',
-                scrollbarWidth: 'thin',
-                scrollbarColor: 'rgba(0,0,0,0.2) transparent'
-              }}
-            >
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
+          <div style={{ minHeight: '200px', display: 'flex', flexDirection: 'column' }}>
+            {isLoading ? (
+              <div className="text-center flex-grow-1 d-flex align-items-center justify-content-center py-4">
+                <div className="spinner-border text-secondary" role="status"></div>
+              </div>
+            ) : categories.length === 0 ? (
+              <div className="text-center py-4 bg-light rounded-4 border-dashed flex-grow-1 d-flex flex-column align-items-center justify-content-center">
+                <i className="bi bi-tags text-secondary fs-1 mb-2 d-block opacity-50"></i>
+                <p className="text-secondary mb-0 fw-medium">No categories yet</p>
+                <small className="text-secondary opacity-75">Create one above to organize your notes</small>
+              </div>
+            ) : (
+              <div
+                className="pe-2"
+                style={{
+                  maxHeight: '40vh',
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: 'rgba(0,0,0,0.2) transparent'
+                }}
               >
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
                 <SortableContext
                   items={categories.map(cat => cat.id)}
                   strategy={rectSortingStrategy}
@@ -417,6 +420,7 @@ export default function NoteCategoryManager({ show, onClose, onCategoryUpdate })
               </DndContext>
             </div>
           )}
+        </div>
         </div>
       </AppModal>
 

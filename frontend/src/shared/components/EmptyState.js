@@ -5,7 +5,7 @@ export default function EmptyState({ title, description, icon, actionLabel, onAc
     <div className="d-flex flex-column align-items-center justify-content-center text-center py-5 mt-4 animate-fade-slide-up w-100">
       <div className="position-relative mb-4">
         {/* Icon Container */}
-        <div className="empty-state-icon rounded-circle d-flex align-items-center justify-content-center position-relative shadow-sm bg-white border border-secondary border-opacity-25">
+        <div className="empty-state-icon rounded-circle d-flex align-items-center justify-content-center position-relative shadow-sm bg-white border border-dark border-opacity-10">
           <i className={`bi ${icon || 'bi-journals'} text-secondary fs-2`}></i>
         </div>
       </div>

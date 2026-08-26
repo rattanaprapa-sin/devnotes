@@ -87,6 +87,7 @@ export default function NotebookCard({ title, category, categoryObj, description
         </div>
         <p 
           className="card-text text-secondary fs-6 lh-base mb-0"
+          title={description}
           style={{
             display: '-webkit-box',
             WebkitLineClamp: 3,

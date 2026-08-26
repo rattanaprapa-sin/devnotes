@@ -24,7 +24,7 @@ const AppInput = forwardRef(({
   const borderClass = className.split(' ').find(c => c.startsWith('border-') && !c.includes('start-0') && !c.includes('end-0')) || '';
   
   return (
-    <div className={`mb-3 ${containerClassName}`}>
+    <div className={containerClassName || 'mb-3'}>
       {label && <label className={`form-label fw-semibold small ${labelColor}`}>{label}</label>}
       <div className="input-group">
         {icon && (
@@ -36,7 +36,7 @@ const AppInput = forwardRef(({
           ref={ref}
           type={inputType}
           className={`form-control px-3 py-2 ${inputBg} ${error ? 'is-invalid' : ''} ${className}`}
-          style={{ transition: 'all 0.2s', boxShadow: 'none' }}
+          style={{ transition: 'border-color 0.15s, background-color 0.15s', boxShadow: 'none' }}
           {...props}
         />
         {isPassword && (

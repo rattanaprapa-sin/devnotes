@@ -81,20 +81,19 @@ export default function GlobalSearchBar({ value, onChange, placeholder = "Search
   const hasResults = results.notebooks.length > 0 || results.notes.length > 0;
 
   return (
-    <div className="row justify-content-center mb-5 w-100" ref={containerRef}>
-      <div className="col-12 col-md-8 col-lg-6 position-relative">
+    <div className="d-flex justify-content-center mb-4 w-100" ref={containerRef}>
+      <div className="position-relative px-3 w-100" style={{ maxWidth: '600px' }}>
         <div 
-          className={`d-flex align-items-center rounded-pill overflow-hidden border ${theme === 'dark' ? 'bg-dark' : 'bg-white'} ${
+          className={`d-flex align-items-center rounded-pill overflow-hidden transition-all ${
             isFocused 
-              ? `shadow-lg ${theme === 'dark' ? 'border-light border-opacity-50' : 'border-primary'}` 
-              : isHovered 
-                ? `shadow ${theme === 'dark' ? 'border-light border-opacity-25' : 'border-secondary border-opacity-25'}`
-                : `shadow-sm ${theme === 'dark' ? 'border-light border-opacity-10' : 'border-light-subtle'}`
+              ? `shadow-sm ${theme === 'dark' ? 'bg-dark border border-light border-opacity-25' : 'bg-white border border-primary border-opacity-25'}` 
+              : `${theme === 'dark' ? 'bg-dark border border-secondary border-opacity-25' : 'border border-secondary border-opacity-10'}`
           }`}
           style={{ 
-            transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-            boxShadow: isFocused ? (theme === 'dark' ? '0 0 0 2px rgba(255, 255, 255, 0.15)' : '0 0 0 3px rgba(13, 110, 253, 0.2)') : '',
-            zIndex: isFocused ? 1050 : 1
+            transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+            boxShadow: isFocused ? (theme === 'dark' ? '0 0 0 2px rgba(255, 255, 255, 0.15)' : '0 0 0 3px rgba(13, 110, 253, 0.15)') : '',
+            zIndex: isFocused ? 1050 : 1,
+            backgroundColor: (!isFocused && theme !== 'dark') ? 'rgba(0,0,0,0.04)' : ''
           }}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
@@ -114,7 +113,7 @@ export default function GlobalSearchBar({ value, onChange, placeholder = "Search
           <input 
             id="global-search-input"
             type="text" 
-            className={`flex-grow-1 py-3 pe-4 bg-transparent ${theme === 'dark' ? 'text-light' : 'text-dark'}`}
+            className={`flex-grow-1 py-2 py-md-3 pe-4 bg-transparent ${theme === 'dark' ? 'text-light' : 'text-dark'}`}
             placeholder={placeholder}
             value={value}
             onChange={(e) => onChange(e.target.value)}

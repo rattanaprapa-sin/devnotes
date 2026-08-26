@@ -106,7 +106,8 @@ export default function AddNotebookModal({ show, onClose, onNotebookAdded, exist
         placeholder="What is this tool about?"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
-        rows={3}
+        rows={5}
+        containerClassName="mb-0"
       />
     </AppModal>
   );

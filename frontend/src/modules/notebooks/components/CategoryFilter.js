@@ -21,7 +21,7 @@ export default function CategoryFilter({ categories = [], activeCategory, onSele
     >
       <div 
         ref={scrollContainerRef}
-        className="d-flex gap-2 overflow-x-auto py-2 custom-scrollbar-hide px-3"
+        className="d-flex gap-2 flex-nowrap overflow-x-auto py-2 custom-scrollbar-hide px-3"
         style={{
           scrollBehavior: isDragging.current ? 'auto' : 'smooth',
           WebkitOverflowScrolling: 'touch',

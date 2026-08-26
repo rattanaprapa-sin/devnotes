@@ -278,7 +278,7 @@ export default function Home() {
     <>
       <Header />
       <div className="container pb-5">
-        <div className="text-center mt-5 pt-4 mb-4">
+        <div className="text-center mt-4 pt-2 mb-3">
           <p className="text-secondary fs-5">
             Your modern workspace for frameworks, tools, and coding wisdom
           </p>
@@ -288,7 +288,7 @@ export default function Home() {
           <div className="w-100">
             <GlobalSearchBar value={searchQuery} onChange={setSearchQuery} />
           </div>
-          <div className="d-flex align-items-center gap-4 mt-2 mb-4 w-100 position-relative" style={{ maxWidth: '800px' }}>
+          <div className="d-flex align-items-center gap-4 mt-0 mb-4 w-100 position-relative" style={{ maxWidth: '800px' }}>
             <div className="flex-grow-1 overflow-hidden">
               <CategoryFilter
                 categories={usedCategories}
@@ -333,7 +333,8 @@ export default function Home() {
             return <SkeletonLayout count={6} />;
           }
           if (displayedNotebooks.length === 0 && !isBackgroundFetching) {
-            if (!hasLoadedOnce.current) {
+            // Check if the empty result is due to filtering
+            if (!searchQuery && activeCategory === 'All') {
               return (
                 <EmptyState
                   title="Welcome to DevNotes!"
@@ -390,7 +391,9 @@ export default function Home() {
           />
         )}
 
-        <AddButton onClick={() => addModal.open()} label="New Notebook" />
+        {!(displayedNotebooks.length === 0 && !isBackgroundFetching && !searchQuery && activeCategory === 'All') && (
+          <AddButton onClick={() => addModal.open()} label="New Notebook" />
+        )}
 
         <AddNotebookModal show={addModal.isOpen} onClose={() => addModal.close()} onNotebookAdded={handleNotebookAdded} existingNotebooks={displayedNotebooks} categories={categories} />
         <EditNotebookModal show={editModal.isOpen} onClose={() => editModal.close()} notebookData={notebookToEdit} categories={categories} onNotebookUpdated={() => { invalidateCache(); handleNotebookAdded(); }} />

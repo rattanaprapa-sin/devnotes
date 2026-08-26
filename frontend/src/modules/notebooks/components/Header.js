@@ -56,14 +56,14 @@ export default function Header() {
 
         {user && (
           <div className="d-flex align-items-center gap-3">
-            <AppButton 
-              variant="outline"
-              className={`rounded-circle d-flex align-items-center justify-content-center ${theme === 'dark' ? 'text-white border-light border-opacity-25 bg-dark hover-bg-dark-subtle' : 'text-secondary border-dark border-opacity-25 bg-white shadow-sm hover-bg-light'}`}
+            <button 
+              className={`btn rounded-circle p-0 d-flex align-items-center justify-content-center flex-shrink-0 ${theme === 'dark' ? 'text-white border-light border-opacity-25 bg-dark hover-bg-dark-subtle' : 'text-secondary border-dark border-opacity-25 bg-white shadow-sm hover-bg-light'}`}
               onClick={() => userGuideModal.open()}
               title="DevNotes Guide"
               style={{ width: '38px', height: '38px', transition: 'all 0.2s', border: '1px solid' }}
-              icon="bi-question-lg fs-5"
-            />
+            >
+              <i className="bi bi-question-lg fs-5"></i>
+            </button>
             <div className="position-relative" ref={dropdownRef}>
               {/* Profile Button (Trigger) */}
               <div 
@@ -112,17 +112,17 @@ export default function Header() {
                         <span className={`small fw-bold text-uppercase ${theme === 'dark' ? 'text-secondary' : 'text-muted'} mb-2 d-block`} style={{ fontSize: '0.7rem', letterSpacing: '0.5px' }}>Theme</span>
                         <div className="d-flex gap-2">
                           <button 
-                            className={`btn rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm ${theme === 'light' ? 'border border-2 border-primary' : 'border border-dark border-opacity-25'}`}
-                            style={{ width: '32px', height: '32px', background: '#ffffff' }}
+                            className={`rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm ${theme === 'light' ? 'border border-2 border-dark border-opacity-50' : 'border border-dark border-opacity-25'}`}
+                            style={{ width: '32px', height: '32px', background: '#ffffff', cursor: 'pointer', outline: 'none' }}
                             onClick={() => setTheme('light')}
                             title="Day Mode"
                           >
-                            {theme === 'light' && <i className="bi bi-check text-primary fs-6"></i>}
+                            {theme === 'light' && <i className="bi bi-check text-dark fs-6"></i>}
                           </button>
                           
                           <button 
-                            className={`btn rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm ${theme === 'blue' ? 'border border-2 border-primary' : 'border border-dark border-opacity-25'}`}
-                            style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #e0e7ff, #cffafe)' }}
+                            className={`rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm ${theme === 'blue' ? 'border border-2 border-primary border-opacity-75' : 'border border-dark border-opacity-25'}`}
+                            style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #e0e7ff, #cffafe)', cursor: 'pointer', outline: 'none' }}
                             onClick={() => setTheme('blue')}
                             title="Blue Mode"
                           >
@@ -130,8 +130,8 @@ export default function Header() {
                           </button>
 
                           <button 
-                            className={`btn rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm ${theme === 'dark' ? 'border border-2 border-light border-opacity-50' : 'border border-light border-opacity-10'}`}
-                            style={{ width: '32px', height: '32px', background: '#212529' }}
+                            className={`rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm ${theme === 'dark' ? 'border border-2 border-light border-opacity-50' : 'border border-light border-opacity-10'}`}
+                            style={{ width: '32px', height: '32px', background: '#212529', cursor: 'pointer', outline: 'none' }}
                             onClick={() => setTheme('dark')}
                             title="Night Mode"
                           >

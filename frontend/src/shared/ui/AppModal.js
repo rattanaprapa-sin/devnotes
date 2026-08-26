@@ -25,15 +25,32 @@ export default function AppModal({
   const sizeClass = size !== 'md' ? `modal-${size}` : '';
 
   return (
-    <div 
-      className="modal fade show d-block bg-dark bg-opacity-50" 
-      tabIndex="-1" 
-      role="dialog" 
-      onClick={onClose}
-      style={{ zIndex: 1050, backdropFilter: 'blur(8px)' }}
-    >
+    <>
+      <style>{`
+        @keyframes modalBackdropFade {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes modalPop {
+          from { opacity: 0; transform: scale(0.95) translateY(10px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .animate-backdrop {
+          animation: modalBackdropFade 0.2s ease-out forwards;
+        }
+        .animate-modal {
+          animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+      `}</style>
       <div 
-        className={`modal-dialog modal-dialog-centered modal-dialog-scrollable ${sizeClass}`} 
+        className="modal show d-block bg-dark bg-opacity-50 animate-backdrop" 
+        tabIndex="-1" 
+        role="dialog" 
+        onClick={onClose}
+        style={{ zIndex: 1050, backdropFilter: 'blur(8px)' }}
+      >
+        <div 
+          className={`modal-dialog modal-dialog-centered modal-dialog-scrollable ${sizeClass} animate-modal`} 
         role="document" 
         onClick={(e) => e.stopPropagation()}
       >
@@ -61,5 +78,6 @@ export default function AppModal({
         </div>
       </div>
     </div>
+    </>
   );
 }
