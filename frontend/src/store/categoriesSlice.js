@@ -22,8 +22,8 @@ export const fetchNotebookCategories = createAsyncThunk(
 
 export const fetchNoteCategories = createAsyncThunk(
   'categories/fetchNoteCategories',
-  async () => {
-    const response = await getNoteCategories();
+  async (notebookId) => {
+    const response = await getNoteCategories(notebookId);
     return response;
   }
 );

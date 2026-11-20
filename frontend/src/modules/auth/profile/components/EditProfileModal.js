@@ -5,9 +5,11 @@ import { supabase } from '../../../../config/supabase';
 import AppModal from '../../../../shared/ui/AppModal';
 import AppInput from '../../../../shared/ui/AppInput';
 import AppButton from '../../../../shared/ui/AppButton';
+import DeleteConfirmModal from '../../../../shared/components/DeleteConfirmModal';
 
 export default function EditProfileModal({ show, onClose, user }) {
   const [loading, setLoading] = useState(false);
+  const [pendingData, setPendingData] = useState(null);
 
   const {
     register,
@@ -41,7 +43,13 @@ export default function EditProfileModal({ show, onClose, user }) {
 
   if (!show) return null;
 
-  const onSubmit = async (data) => {
+  const handleRequestSubmit = (data) => {
+    setPendingData(data);
+  };
+
+  const onSubmit = async () => {
+    const data = pendingData;
+    if (!data) return;
     setLoading(true);
 
     try {
@@ -78,14 +86,17 @@ export default function EditProfileModal({ show, onClose, user }) {
         const { error: updateError } = await supabase.auth.updateUser(updates);
         if (updateError) throw updateError;
         toast.success('Profile updated successfully!', { style: { textAlign: 'center' } });
+        setPendingData(null);
         setTimeout(() => {
           onClose();
         }, 1000);
       } else {
+        setPendingData(null);
         onClose(); // No changes made
       }
     } catch (err) {
       toast.error(err.message || 'Failed to update profile', { style: { textAlign: 'center' } });
+      setPendingData(null);
     } finally {
       setLoading(false);
     }
@@ -124,13 +135,14 @@ export default function EditProfileModal({ show, onClose, user }) {
   );
 
   return (
+    <>
     <AppModal
       show={show}
       onClose={onClose}
       title="Edit Profile"
       footer={footer}
     >
-      <form id="edit-profile-form" onSubmit={handleSubmit(onSubmit)}>
+      <form id="edit-profile-form" onSubmit={handleSubmit(handleRequestSubmit)}>
         <AppInput
           label="Display Name"
           placeholder="How should we call you?"
@@ -183,5 +195,18 @@ export default function EditProfileModal({ show, onClose, user }) {
         />
       </form>
     </AppModal>
+
+    <DeleteConfirmModal
+      show={!!pendingData}
+      onClose={() => setPendingData(null)}
+      onConfirm={onSubmit}
+      title="Update Profile?"
+      message="Are you sure you want to save changes to your profile?"
+      confirmText="Save"
+      variant="dark"
+      icon="bi-person-check"
+      isDeleting={loading}
+    />
+    </>
   );
 }

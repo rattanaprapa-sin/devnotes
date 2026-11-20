@@ -32,17 +32,19 @@ export default function CategoryFilter({ categories = [], activeCategory, onSele
       >
         {isLoading ? (
           <>
-            <div className="btn rounded-pill px-4 py-2 placeholder-glow bg-secondary bg-opacity-10" style={{ width: '100px', height: '40px' }}></div>
-            <div className="btn rounded-pill px-4 py-2 placeholder-glow bg-secondary bg-opacity-10" style={{ width: '120px', height: '40px' }}></div>
-            <div className="btn rounded-pill px-4 py-2 placeholder-glow bg-secondary bg-opacity-10" style={{ width: '90px', height: '40px' }}></div>
-            <div className="btn rounded-pill px-4 py-2 placeholder-glow bg-secondary bg-opacity-10" style={{ width: '110px', height: '40px' }}></div>
+            <div className="btn rounded-pill placeholder-glow bg-secondary bg-opacity-10" style={{ width: '95px', height: '36px' }}></div>
+            <div className="btn rounded-pill placeholder-glow bg-secondary bg-opacity-10" style={{ width: '115px', height: '36px' }}></div>
+            <div className="btn rounded-pill placeholder-glow bg-secondary bg-opacity-10" style={{ width: '85px', height: '36px' }}></div>
+            <div className="btn rounded-pill placeholder-glow bg-secondary bg-opacity-10" style={{ width: '105px', height: '36px' }}></div>
           </>
         ) : (
           <>
             <button
-              className={`btn rounded-pill px-4 py-2 fw-medium hover-lift flex-shrink-0 category-filter-btn ${activeCategory === 'All' ? 'fw-bold shadow-sm' : 'border'}`}
+              className={`btn rounded-pill fw-medium hover-lift flex-shrink-0 category-filter-btn ${activeCategory === 'All' ? 'fw-bold shadow-sm' : 'border'}`}
               style={{
                 transition: 'all 0.2s',
+                padding: '6px 18px',
+                fontSize: '0.88rem',
                 backgroundColor: activeCategory === 'All' ? (theme === 'dark' ? '#fff' : (theme === 'blue' ? 'var(--bs-primary)' : '#212529')) : (theme === 'blue' ? 'rgba(255, 255, 255, 0.9)' : (theme === 'dark' ? 'rgba(255,255,255,0.1)' : '#fff')),
                 color: activeCategory === 'All' ? (theme === 'dark' ? '#000' : '#fff') : (theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : '#6c757d'),
                 borderColor: activeCategory === 'All' ? (theme === 'dark' ? '#fff' : (theme === 'blue' ? 'var(--bs-primary)' : '#212529')) : (theme === 'blue' ? 'rgba(255, 255, 255, 0.8)' : (theme === 'dark' ? 'rgba(255,255,255,0.2)' : '#dee2e6')),
@@ -54,24 +56,25 @@ export default function CategoryFilter({ categories = [], activeCategory, onSele
               All Tools
             </button>
       
-      {categories.map((cat) => (
-        <button
-          key={cat.id}
-          className={`btn rounded-pill px-4 py-2 d-flex align-items-center gap-1 flex-shrink-0 category-filter-btn ${activeCategory === cat.id ? 'fw-bold text-white shadow-sm' : 'border'}`}
-          style={{ 
-            transition: 'all 0.2s',
-            backgroundColor: activeCategory === cat.id ? cat.color : (theme === 'blue' ? 'rgba(255, 255, 255, 0.9)' : (theme === 'dark' ? `${cat.color}4D` : `${cat.color}15`)),
-            color: activeCategory === cat.id ? '#fff' : (theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : cat.color),
-            borderColor: activeCategory === cat.id ? cat.color : (theme === 'blue' ? 'rgba(255, 255, 255, 0.8)' : (theme === 'dark' ? `${cat.color}66` : `${cat.color}30`)),
-            backdropFilter: theme === 'blue' ? 'blur(10px)' : 'none',
-            WebkitBackdropFilter: theme === 'blue' ? 'blur(10px)' : 'none',
-          }}
-          onClick={() => handleClick(cat.id)}
-        >
-          {cat.name}
-        </button>
-      ))}
-
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                className={`btn rounded-pill d-flex align-items-center gap-1 flex-shrink-0 category-filter-btn ${activeCategory === cat.id ? 'fw-bold text-white shadow-sm' : 'border'}`}
+                style={{ 
+                  transition: 'all 0.2s',
+                  padding: '6px 18px',
+                  fontSize: '0.88rem',
+                  backgroundColor: activeCategory === cat.id ? cat.color : (theme === 'blue' ? 'rgba(255, 255, 255, 0.9)' : (theme === 'dark' ? `${cat.color}4D` : `${cat.color}15`)),
+                  color: activeCategory === cat.id ? '#fff' : (theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : cat.color),
+                  borderColor: activeCategory === cat.id ? cat.color : (theme === 'blue' ? 'rgba(255, 255, 255, 0.8)' : (theme === 'dark' ? `${cat.color}66` : `${cat.color}30`)),
+                  backdropFilter: theme === 'blue' ? 'blur(10px)' : 'none',
+                  WebkitBackdropFilter: theme === 'blue' ? 'blur(10px)' : 'none',
+                }}
+                onClick={() => handleClick(cat.id)}
+              >
+                {cat.name}
+              </button>
+            ))}
           </>
         )}
       </div>

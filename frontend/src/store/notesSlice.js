@@ -3,10 +3,10 @@ import { getNotebook, getNotes, createNote as createNoteApi, updateNote, deleteN
 
 export const fetchNotebookDetails = createAsyncThunk(
   'notes/fetchNotebookDetails',
-  async ({ notebookId, page = 1, limit = 12 }) => {
+  async ({ notebookId, page = 1, limit = 12, categoryId, search }) => {
     const [notebookData, notesResponse] = await Promise.all([
       getNotebook(notebookId),
-      getNotes(notebookId, { page, limit })
+      getNotes(notebookId, { page, limit, categoryId, search })
     ]);
     return { notebook: notebookData, notes: notesResponse };
   },
@@ -66,6 +66,8 @@ const notesSlice = createSlice({
     currentNotebook: null,
     items: [],
     usedCategoryIds: [],
+    activeCategoryFilter: 'All',
+    searchQuery: '',
     status: 'idle',
     error: null,
     pagination: {
@@ -80,6 +82,8 @@ const notesSlice = createSlice({
       state.currentNotebook = null;
       state.items = [];
       state.usedCategoryIds = [];
+      state.activeCategoryFilter = 'All';
+      state.searchQuery = '';
       state.status = 'idle';
       state.pagination = {
         currentPage: 1,
@@ -91,8 +95,14 @@ const notesSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchNotebookDetails.pending, (state) => {
+      .addCase(fetchNotebookDetails.pending, (state, action) => {
         state.status = 'loading';
+        if (action.meta.arg?.categoryId !== undefined) {
+          state.activeCategoryFilter = action.meta.arg.categoryId;
+        }
+        if (action.meta.arg?.search !== undefined) {
+          state.searchQuery = action.meta.arg.search;
+        }
       })
       .addCase(fetchNotebookDetails.fulfilled, (state, action) => {
         state.status = 'succeeded';
@@ -110,8 +120,14 @@ const notesSlice = createSlice({
         state.status = 'failed';
         state.error = action.error.message;
       })
-      .addCase(fetchFilteredNotes.pending, (state) => {
+      .addCase(fetchFilteredNotes.pending, (state, action) => {
         state.status = 'loading';
+        if (action.meta.arg?.categoryId !== undefined) {
+          state.activeCategoryFilter = action.meta.arg.categoryId;
+        }
+        if (action.meta.arg?.search !== undefined) {
+          state.searchQuery = action.meta.arg.search;
+        }
       })
       .addCase(fetchFilteredNotes.fulfilled, (state, action) => {
         state.status = 'succeeded';
@@ -129,17 +145,43 @@ const notesSlice = createSlice({
         state.error = action.error.message;
       })
       .addCase(addNote.fulfilled, (state, action) => {
-        state.items.unshift(action.payload);
+        const newNote = action.payload;
+        if (newNote.category_id && !state.usedCategoryIds.includes(newNote.category_id)) {
+          state.usedCategoryIds.push(newNote.category_id);
+        }
+        const matchesCategory =
+          !state.activeCategoryFilter ||
+          state.activeCategoryFilter === 'All' ||
+          (state.activeCategoryFilter === 'null' && !newNote.category_id) ||
+          newNote.category_id === state.activeCategoryFilter;
+        if (matchesCategory) {
+          state.items.unshift(newNote);
+          state.pagination.totalItems += 1;
+        }
       })
       .addCase(editNote.fulfilled, (state, action) => {
         const updatedNote = action.payload;
+        if (updatedNote.category_id && !state.usedCategoryIds.includes(updatedNote.category_id)) {
+          state.usedCategoryIds.push(updatedNote.category_id);
+        }
         const index = state.items.findIndex(note => note.id === updatedNote.id);
         if (index !== -1) {
-          state.items[index] = updatedNote;
+          const matchesCategory =
+            !state.activeCategoryFilter ||
+            state.activeCategoryFilter === 'All' ||
+            (state.activeCategoryFilter === 'null' && !updatedNote.category_id) ||
+            updatedNote.category_id === state.activeCategoryFilter;
+          if (matchesCategory) {
+            state.items[index] = updatedNote;
+          } else {
+            state.items.splice(index, 1);
+            state.pagination.totalItems = Math.max(0, state.pagination.totalItems - 1);
+          }
         }
       })
       .addCase(removeNote.fulfilled, (state, action) => {
         state.items = state.items.filter(note => note.id !== action.payload);
+        state.pagination.totalItems = Math.max(0, state.pagination.totalItems - 1);
       })
       .addCase(toggleNotePin.fulfilled, (state, action) => {
         const updatedNote = action.payload;

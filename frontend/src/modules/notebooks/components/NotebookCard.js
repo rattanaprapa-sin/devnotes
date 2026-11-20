@@ -55,73 +55,118 @@ export default function NotebookCard({ title, category, categoryObj, description
 
   return (
     <div 
-      className={`card h-100 rounded-4 p-2 bg-white hover-lift ${isPinned ? 'border-warning shadow' : 'border shadow-sm'}`}
+      className={`card h-100 rounded-4 overflow-hidden bg-white hover-lift ${isPinned ? 'border-warning shadow' : 'border shadow-sm'}`}
       style={{ borderWidth: isPinned ? '2px' : '1px', cursor: 'pointer' }}
     >
-      <div className="card-body d-flex flex-column">
-        <div className="mb-3 position-relative">
-          <div className="d-flex flex-column pe-4">
-            <h5 className="card-title fw-bold mb-2 text-dark fs-5">
-              {title ? title.charAt(0).toUpperCase() + title.slice(1) : ''}
-            </h5>
-            <div>
-              <span 
-                className="badge rounded-pill px-3 py-2 fw-bold"
-                style={getCategoryStyle(categoryObj, category)}
-              >
-                {categoryObj?.name || category || 'Other'}
-              </span>
-            </div>
-          </div>
+      <div
+        className="card-body app-card-body d-flex flex-column"
+      >
+        <div className="mb-1 mb-md-2 position-relative">
+          <h5
+            className="card-title fw-bold text-dark mb-0 pe-4"
+            style={{
+              fontSize: '1.05rem',
+              lineHeight: 1.35,
+              display: '-webkit-box',
+              lineClamp: 2,
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+            title={title}
+          >
+            {title ? title.charAt(0).toUpperCase() + title.slice(1) : ''}
+          </h5>
           <button
             type="button"
-            className={`btn btn-link p-0 text-decoration-none shadow-none fs-5 border-0 position-absolute ${isPinned ? 'text-warning' : 'text-secondary opacity-50'}`}
-            style={{ top: '0px', right: '4px', zIndex: 2, transition: 'all 0.2s', lineHeight: 1 }}
+            className={`btn btn-link p-0 d-flex align-items-center justify-content-center text-decoration-none shadow-none border-0 position-absolute ${isPinned ? 'text-warning' : 'text-secondary opacity-50'}`}
+            style={{
+              top: '0px',
+              right: '-4px',
+              width: '26px',
+              height: '26px',
+              zIndex: 2,
+              transition: 'all 0.2s',
+              lineHeight: 1,
+            }}
             onClick={(e) => {
               e.stopPropagation();
               if (onTogglePin) onTogglePin();
             }}
           >
-            <i className={`bi ${isPinned ? 'bi-pin-angle-fill' : 'bi-pin-angle'}`}></i>
+            <i
+              className={`bi ${isPinned ? 'bi-pin-angle-fill' : 'bi-pin-angle'}`}
+              style={{ fontSize: '1.05rem' }}
+            ></i>
           </button>
         </div>
-        <p 
-          className="card-text text-secondary fs-6 lh-base mb-0"
-          title={description}
-          style={{
-            display: '-webkit-box',
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis'
-          }}
+
+        <div className="app-card-badge-wrap">
+          <span 
+            className="badge rounded-pill fw-medium app-card-badge"
+            style={{
+              ...getCategoryStyle(categoryObj, category),
+              fontSize: '0.75rem',
+              padding: '3px 10px',
+            }}
+          >
+            {categoryObj?.name || category || 'Other'}
+          </span>
+        </div>
+
+        {description && (
+          <p 
+            className="card-text text-secondary flex-grow-1 app-card-text d-none d-md-block"
+            title={description}
+            style={{
+              display: '-webkit-box',
+              lineClamp: 3,
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              fontSize: '0.92rem',
+              lineHeight: '1.55',
+              marginBottom: '0.9rem',
+            }}
+          >
+            {description}
+          </p>
+        )}
+
+        <div
+          className="d-flex justify-content-between align-items-center mt-auto border-top app-card-footer"
+          style={{ paddingTop: '0.65rem' }}
         >
-          {description}
-        </p>
-        <div className="d-flex justify-content-between align-items-center mt-auto pt-3">
-          <div className="text-secondary small d-flex align-items-center gap-2 fw-medium">
-            <i className="bi bi-file-earmark-text"></i>
-            <span>{noteCount} Notes</span>
+          <div
+            className="text-secondary d-flex align-items-center fw-medium app-card-meta min-w-0"
+            style={{ fontSize: '0.8rem', gap: '8px' }}
+          >
+            <span className="d-flex align-items-center flex-shrink-0" style={{ gap: '4px' }}>
+              <i className="bi bi-file-earmark-text"></i>
+              <span>{noteCount} Notes</span>
+            </span>
           </div>
-          <div className="d-flex gap-2">
+          <div className="d-flex" style={{ gap: '5px' }}>
             <AppButton 
               variant="light"
-              className="bg-white border shadow-sm rounded-circle p-0 d-flex align-items-center justify-content-center text-secondary flex-shrink-0 hover-bg-secondary hover-text-white transition-all"
+              className="bg-white border shadow-sm rounded-circle p-0 d-flex align-items-center justify-content-center text-secondary flex-shrink-0 hover-bg-secondary hover-text-white transition-all app-card-action-btn"
               onClick={(e) => {
                 e.stopPropagation();
                 if (onEdit) onEdit();
               }}
-              style={{ width: '36px', height: '36px', minWidth: '36px', minHeight: '36px' }}
+              style={{ width: '28px', height: '28px', minWidth: '28px', minHeight: '28px', padding: 0, fontSize: '0.78rem' }}
               icon="bi-pencil-square"
             />
             <AppButton 
               variant="light"
-              className="bg-white border shadow-sm rounded-circle p-0 d-flex align-items-center justify-content-center text-danger flex-shrink-0 hover-bg-danger hover-text-white transition-all"
+              className="bg-white border shadow-sm rounded-circle p-0 d-flex align-items-center justify-content-center text-danger flex-shrink-0 hover-bg-danger hover-text-white transition-all app-card-action-btn"
               onClick={(e) => {
                 e.stopPropagation();
                 if (onDelete) onDelete();
               }}
-              style={{ width: '36px', height: '36px', minWidth: '36px', minHeight: '36px' }}
+              style={{ width: '28px', height: '28px', minWidth: '28px', minHeight: '28px', padding: 0, fontSize: '0.78rem' }}
               icon="bi-trash3"
             />
           </div>

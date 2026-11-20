@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import toast from 'react-hot-toast';
 import { addNotebook } from '../../../store/notebooksSlice';
+import { addNotebookCategory } from '../../../store/categoriesSlice';
 import AppModal from '../../../shared/ui/AppModal';
 import AppInput from '../../../shared/ui/AppInput';
-import AppSelect from '../../../shared/ui/AppSelect';
+import CreatableCategorySelect from '../../../shared/components/CreatableCategorySelect';
 import AppTextarea from '../../../shared/ui/AppTextarea';
 import AppButton from '../../../shared/ui/AppButton';
 
@@ -13,10 +14,9 @@ export default function AddNotebookModal({ show, onClose, onNotebookAdded, exist
   const [toolName, setToolName] = useState('');
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [customCategoryName, setCustomCategoryName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
-
-
 
   if (!show) return null;
 
@@ -24,8 +24,28 @@ export default function AddNotebookModal({ show, onClose, onNotebookAdded, exist
     onClose();
     setToolName('');
     setCategoryId('');
+    setCustomCategoryName('');
     setDescription('');
     setError('');
+  };
+
+  const handleCreateCategory = async (name, color = '#6c757d') => {
+    const trimmed = name.trim();
+    if (!trimmed) return null;
+
+    const existing = categories.find(
+      (c) => (c.name || '').toLowerCase() === trimmed.toLowerCase()
+    );
+    if (existing) return existing;
+
+    const created = await dispatch(
+      addNotebookCategory({
+        name: trimmed,
+        color,
+      })
+    ).unwrap();
+    toast.success(`Category "${trimmed}" created`);
+    return created;
   };
 
   const handleSave = async () => {
@@ -39,13 +59,20 @@ export default function AddNotebookModal({ show, onClose, onNotebookAdded, exist
     }
     
     setIsSaving(true);
-    let finalCategoryId = categoryId;
-    if (!finalCategoryId && categories.length > 0) {
-      const otherCat = categories.find(c => (c.name || '').toLowerCase() === 'other');
-      finalCategoryId = otherCat ? otherCat.id : null;
-    }
-
     try {
+      let finalCategoryId = categoryId;
+      if (!finalCategoryId && customCategoryName.trim()) {
+        const createdCat = await handleCreateCategory(customCategoryName.trim(), '#6c757d');
+        if (createdCat?.id) {
+          finalCategoryId = createdCat.id;
+        }
+      }
+
+      if (!finalCategoryId && categories.length > 0) {
+        const otherCat = categories.find(c => (c.name || '').toLowerCase() === 'other');
+        finalCategoryId = otherCat ? otherCat.id : null;
+      }
+
       await dispatch(addNotebook({
         title: toolName.trim(),
         categoryId: finalCategoryId,
@@ -92,14 +119,16 @@ export default function AddNotebookModal({ show, onClose, onNotebookAdded, exist
         onChange={(e) => { setToolName(e.target.value); setError(''); }}
         error={error}
       />
-      <AppSelect
+      <CreatableCategorySelect
         label="Category"
+        categories={categories}
         value={categoryId}
-        onChange={(e) => setCategoryId(e.target.value)}
-        options={[
-          { value: '', label: 'Select Category...' },
-          ...categories.map(cat => ({ value: cat.id, label: cat.name }))
-        ]}
+        onChange={setCategoryId}
+        customName={customCategoryName}
+        onCustomNameChange={setCustomCategoryName}
+        onCreateCategory={handleCreateCategory}
+        placeholder="Select or type to create category..."
+        emptyOptionLabel="Other (Default)"
       />
       <AppTextarea
         label="Brief Description (Optional)"

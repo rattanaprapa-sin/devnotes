@@ -71,8 +71,8 @@ export default function ForgotPasswordModal({ show, onClose }) {
         </div>
       ) : (
         <form onSubmit={handleSubmit(onSubmit)}>
-          <p className="mb-4 text-dark opacity-75 lh-base">
-            Enter your email address below and we'll send you a link to reset your password.
+          <p className="mb-3 mb-sm-4 text-dark opacity-75 lh-base">
+            Enter your email address below to receive a password reset link
           </p>
 
           {error && (

@@ -4,8 +4,8 @@ import useModal from '../../shared/hooks/useModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
-import { fetchNotebooks, toggleNotebookPin, removeNotebook } from '../../store/notebooksSlice';
-import { fetchNotebookCategories, fetchNoteCategories } from '../../store/categoriesSlice';
+import { toggleNotebookPin, removeNotebook } from '../../store/notebooksSlice';
+import { fetchNotebookCategories } from '../../store/categoriesSlice';
 import { getNotebooks } from '../../storage/api';
 import Header from '../../modules/notebooks/components/Header';
 import GlobalSearchBar from '../../shared/components/GlobalSearchBar';
@@ -15,11 +15,13 @@ import AddButton from '../../modules/notebooks/components/AddButton';
 import AddNotebookModal from '../../modules/notebooks/components/AddNotebookModal';
 import EditNotebookModal from '../../modules/notebooks/components/EditNotebookModal';
 import NotebookCategoryManager from '../../modules/notebooks/components/NotebookCategoryManager';
+import StickyChecklist from '../../modules/notebooks/components/StickyChecklist';
 import SkeletonLayout from '../../shared/components/SkeletonLayout';
 import EmptyState from '../../shared/components/EmptyState';
 import DeleteConfirmModal from '../../shared/components/DeleteConfirmModal';
 import useKeyboardShortcuts from '../../shared/hooks/useKeyboardShortcuts';
 import Pagination from '../../shared/components/Pagination';
+import { isCategoryHidden } from '../../shared/utils/categoryUtils';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -49,7 +51,6 @@ export default function Home() {
   const [isBackgroundFetching, setIsBackgroundFetching] = useState(false);
 
   const { items: categories, status: categoryStatus } = useSelector((state) => state.categories.notebookCategories);
-  const { status: noteCategoryStatus } = useSelector((state) => state.categories.noteCategories);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -57,11 +58,17 @@ export default function Home() {
       if (categoryStatus === 'idle') {
         dispatch(fetchNotebookCategories());
       }
-      if (noteCategoryStatus === 'idle') {
-        dispatch(fetchNoteCategories());
+    }
+  }, [user?.id, categoryStatus, dispatch]);
+
+  useEffect(() => {
+    if (activeCategory !== 'All' && categories?.length > 0) {
+      const activeCat = categories.find((c) => c.id === activeCategory);
+      if (activeCat && (activeCat.icon === 'hidden' || activeCat.icon?.endsWith(':hidden'))) {
+        setActiveCategory('All');
       }
     }
-  }, [user?.id, categoryStatus, noteCategoryStatus, dispatch]);
+  }, [categories, activeCategory]);
 
   useKeyboardShortcuts();
 
@@ -264,22 +271,15 @@ export default function Home() {
     editModal.open();
   };
 
-  const usedCategoryIdsSet = new Set(usedCategoryIds || []);
-  const usedCategoryStringsSet = new Set((usedCategoryStrings || []).map(s => s.toLowerCase()));
-  
-  // Show all categories instead of hiding unused ones
-  const usedCategories = categories;
-  
-  // Also check if any notebooks have no category OR have a legacy category that isn't in Redux
-  const hasOtherCategory = usedCategoryIdsSet.has(null) || 
-                           usedCategoryStrings.some(s => !s || !categories.some(c => (c.name || '').toLowerCase() === s.toLowerCase()));
+  // Show all visible categories (exclude hidden ones)
+  const usedCategories = categories.filter((cat) => !isCategoryHidden(cat));
 
   return (
     <>
       <Header />
       <div className="container pb-5">
-        <div className="text-center mt-4 pt-2 mb-3">
-          <p className="text-secondary fs-5">
+        <div className="text-center mt-2 mt-md-3 mb-2">
+          <p className="text-secondary mb-0" style={{ fontSize: 'clamp(0.78rem, 2.5vw, 0.95rem)' }}>
             Your modern workspace for frameworks, tools, and coding wisdom
           </p>
         </div>
@@ -288,7 +288,7 @@ export default function Home() {
           <div className="w-100">
             <GlobalSearchBar value={searchQuery} onChange={setSearchQuery} />
           </div>
-          <div className="d-flex align-items-center gap-4 mt-0 mb-4 w-100 position-relative" style={{ maxWidth: '800px' }}>
+          <div className="d-flex align-items-center gap-1.5 gap-md-2 mt-0 mb-2 mb-md-3 w-100 position-relative" style={{ maxWidth: '960px', gap: '6px' }}>
             <div className="flex-grow-1 overflow-hidden">
               <CategoryFilter
                 categories={usedCategories}
@@ -298,12 +298,12 @@ export default function Home() {
               />
             </div>
             <button
-              className="btn btn-light border rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center shadow-sm hover-lift"
-              style={{ width: '38px', height: '38px', zIndex: 10 }}
+              className="btn btn-light border rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center shadow-sm hover-lift p-0"
+              style={{ width: '34px', height: '34px', zIndex: 10 }}
               onClick={() => categoryManagerModal.open()}
               title="Manage Categories"
             >
-              <i className="bi bi-gear-fill text-secondary opacity-75"></i>
+              <i className="bi bi-gear-fill text-secondary opacity-75" style={{ fontSize: '0.88rem' }}></i>
             </button>
           </div>
         </div>
@@ -327,6 +327,8 @@ export default function Home() {
             }}
           />
         )}
+
+        <StickyChecklist />
 
         {(() => {
           if (isInitialLoading) {
@@ -355,13 +357,13 @@ export default function Home() {
           }
           return (
             <div
-              className="row g-4"
+              className="row g-2 g-md-4"
               style={{ opacity: isBackgroundFetching ? 0.6 : 1, transition: 'opacity 0.15s ease', pointerEvents: isBackgroundFetching ? 'none' : 'auto' }}
             >
               {displayedNotebooks.map((notebook, index) => (
                 <div
                   key={notebook.id}
-                  className="col-12 col-md-6 col-lg-4 animate-fade-slide-up"
+                  className="col-6 col-lg-4 animate-fade-slide-up"
                   style={{ animationDelay: `${index * 50}ms` }}
                   onClick={() => navigate(`/notebook/${notebook.id}`)}
                 >
@@ -405,9 +407,8 @@ export default function Home() {
           title="Delete Notebook?"
           message={
             <>
-              Are you sure you want to delete <strong>"{notebookToDelete?.title ? notebookToDelete.title.charAt(0).toUpperCase() + notebookToDelete.title.slice(1) : 'this notebook'}"</strong>?<br /><br />
-              All notes inside will be permanently lost.<br />
-              This process cannot be undone.
+              Are you sure you want to delete <strong>"{notebookToDelete?.title ? notebookToDelete.title.charAt(0).toUpperCase() + notebookToDelete.title.slice(1) : 'this notebook'}"</strong>?<br />
+              <span className="d-block mt-1">All notes inside will be permanently deleted</span>
             </>
           }
           isDeleting={isDeleting}

@@ -13,7 +13,9 @@ export default function AppButton({
   ...props
 }) {
   const sizeClass = size !== 'md' ? `btn-${size}` : '';
-  const finalClass = `btn btn-${variant} ${sizeClass} fw-medium rounded-pill px-4 ${className}`;
+  const hasPaddingClass = /\bp[x]?-/.test(className);
+  const defaultPadding = hasPaddingClass ? '' : 'px-4';
+  const finalClass = `btn btn-${variant} ${sizeClass} fw-medium rounded-pill ${defaultPadding} ${className}`.trim();
 
   return (
     <button 

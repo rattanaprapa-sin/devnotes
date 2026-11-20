@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import { fetchNotebookDetails, clearCurrentNotebook, removeNote, toggleNotePin, fetchFilteredNotes } from '../../store/notesSlice';
-import { fetchNoteCategories } from '../../store/categoriesSlice';
+import { fetchNoteCategories, editNoteCategory } from '../../store/categoriesSlice';
 import Header from '../../modules/notebooks/components/Header';
 import NoteCard from '../../modules/notes/components/NoteCard';
 import AddNoteModal from '../../modules/notes/components/AddNoteModal';
@@ -22,6 +22,7 @@ import Pagination from '../../shared/components/Pagination';
 import { useTheme } from '../../contexts/ThemeContext';
 import useModal from '../../shared/hooks/useModal';
 import useLocalStorage from '../../shared/hooks/useLocalStorage';
+import { isCategoryHidden, filterCategoriesForNotebook } from '../../shared/utils/categoryUtils';
 
 export default function NotebookDetail() {
   const navigate = useNavigate();
@@ -67,7 +68,7 @@ export default function NotebookDetail() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const { currentNotebook: notebook, items: notes, usedCategoryIds, status, pagination } = useSelector((state) => state.notes);
-  const { items: categories, status: categoryStatus } = useSelector((state) => state.categories.noteCategories);
+  const { items: categories } = useSelector((state) => state.categories.noteCategories);
 
   const descriptionRef = useRef(null);
   const containerRef = useRef(null);
@@ -82,9 +83,10 @@ export default function NotebookDetail() {
         const innerHeight = descriptionRef.current.scrollHeight;
         setDescHeight(innerHeight);
         
-        // Calculate the threshold based on 3.6rem
+        // Calculate the threshold based on 2.3rem on mobile (< 768px) or 3.6rem on desktop
         const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-        const threshold = 3.6 * rootFontSize;
+        const collapsedRem = window.innerWidth < 768 ? 2.3 : 3.6;
+        const threshold = collapsedRem * rootFontSize;
         
         // Add a small 2px buffer for rounding discrepancies
         setIsOverflowing(innerHeight > threshold + 2);
@@ -107,8 +109,11 @@ export default function NotebookDetail() {
 
   useEffect(() => {
     if (id) {
-      // Only fetch on mount or when notebook id changes — not on pagination/category changes
+      setActiveCategoryFilter('All');
+      setSearchQuery('');
+      // Fetch notebook details and categories scoped to this notebook
       dispatch(fetchNotebookDetails({ notebookId: id, page: 1, limit: 12 }));
+      dispatch(fetchNoteCategories(id));
     }
     return () => {
       dispatch(clearCurrentNotebook());
@@ -135,11 +140,40 @@ export default function NotebookDetail() {
     }
   }, [id, dispatch, activeCategoryFilter, searchQuery]); // Skip pagination deps to avoid loop
 
+  // Lazily bind legacy categories (without 'nb:' prefix) that are actively used in this notebook
+  const boundCategoryIdsRef = useRef(new Set());
   useEffect(() => {
-    if (categoryStatus === 'idle') {
-      dispatch(fetchNoteCategories());
+    if (!id || !categories?.length || !usedCategoryIds?.length) return;
+    const usedSet = new Set(usedCategoryIds);
+    categories.forEach((cat) => {
+      if (
+        (!cat.icon || (!cat.icon.startsWith('nb:') && cat.icon !== 'hidden' && !cat.icon.endsWith(':hidden'))) &&
+        usedSet.has(cat.id) &&
+        !boundCategoryIdsRef.current.has(cat.id)
+      ) {
+        boundCategoryIdsRef.current.add(cat.id);
+        dispatch(
+          editNoteCategory({
+            id: cat.id,
+            data: {
+              name: cat.name,
+              color: cat.color,
+              icon: `nb:${id}`,
+            },
+          })
+        );
+      }
+    });
+  }, [id, categories, usedCategoryIds, dispatch]);
+
+  useEffect(() => {
+    if (activeCategoryFilter !== 'All' && categories?.length > 0) {
+      const activeCat = categories.find((c) => c.id === activeCategoryFilter);
+      if (activeCat && (activeCat.icon === 'hidden' || activeCat.icon?.endsWith(':hidden'))) {
+        setActiveCategoryFilter('All');
+      }
     }
-  }, [categoryStatus, dispatch]);
+  }, [categories, activeCategoryFilter]);
 
   const handlePageChange = (newPage) => {
     if (id) {
@@ -156,9 +190,9 @@ export default function NotebookDetail() {
 
 
   const handleCategoryUpdate = () => {
-    dispatch(fetchNoteCategories());
     if (id) {
-      dispatch(fetchNotebookDetails({ notebookId: id, page: pagination?.currentPage || 1, limit: pagination?.limit || 12 }));
+      dispatch(fetchNoteCategories(id));
+      dispatch(fetchNotebookDetails({ notebookId: id, page: pagination?.currentPage || 1, limit: pagination?.limit || 12, categoryId: activeCategoryFilter, search: searchQuery }));
     }
   };
 
@@ -226,75 +260,82 @@ export default function NotebookDetail() {
   }
 
   const filteredNotes = notes || [];
-  const usedCategoryIdsSet = new Set(usedCategoryIds || []);
-  // Show all categories instead of hiding unused ones
-  const usedCategories = categories;
-  const hasOtherCategory = usedCategoryIdsSet.has(null);
+  // Only show visible categories that belong to this notebook
+  const notebookCategories = filterCategoriesForNotebook(categories, id, usedCategoryIds);
+  const usedCategories = notebookCategories.filter((cat) => !isCategoryHidden(cat));
 
   return (
     <>
       <Header />
       <div className="container pb-5">
-      <div className="row g-3 align-items-center mb-4 pb-4 pt-4 border-bottom">
-        <div className="col-12 col-md d-flex align-items-center gap-3 order-1">
+      <div className="row g-2 g-md-3 align-items-center mb-2 mb-md-4 pb-2 pb-md-4 pt-2 pt-md-4 border-bottom">
+        <div className="col-12 col-md d-flex align-items-center flex-wrap gap-2 gap-md-3 order-1">
           <button
             onClick={() => navigate('/')}
             className={`btn btn-link p-0 border-0 d-flex align-items-center justify-content-center flex-shrink-0 text-decoration-none opacity-75 hover-opacity-100 ${theme === 'dark' ? 'text-light' : 'text-secondary'}`}
             style={{ transition: 'opacity 0.2s' }}
             title="Back to Dashboard"
           >
-            <i className="bi bi-arrow-left fs-4"></i>
+            <i className="bi bi-arrow-left fs-5 fs-md-4"></i>
           </button>
-          <h1 className="fw-bolder display-5 mb-0 text-dark">
+          <h1 className="fw-bolder fs-4 fs-md-1 mb-0 text-dark text-break">
             {notebook.title ? notebook.title.charAt(0).toUpperCase() + notebook.title.slice(1) : ''}
           </h1>
           <span 
-            className="badge rounded-pill px-4 py-2 fs-6 fw-semibold shadow-sm"
-            style={notebook.notebook_categories?.color ? {
-              backgroundColor: theme === 'blue' ? 'rgba(255, 255, 255, 0.9)' : (theme === 'dark' ? `${notebook.notebook_categories.color}4D` : `${notebook.notebook_categories.color}15`),
-              color: theme === 'dark' ? 'rgba(255, 255, 255, 0.9)' : notebook.notebook_categories.color,
-              border: `1px solid ${theme === 'blue' ? 'rgba(255, 255, 255, 0.8)' : (theme === 'dark' ? `${notebook.notebook_categories.color}66` : `${notebook.notebook_categories.color}30`)}`,
-              backdropFilter: theme === 'blue' ? 'blur(10px)' : 'none',
-              WebkitBackdropFilter: theme === 'blue' ? 'blur(10px)' : 'none',
-            } : {
-              backgroundColor: theme === 'blue' ? 'rgba(255, 255, 255, 0.9)' : (theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0,0,0,0.05)'),
-              color: theme === 'dark' ? 'rgba(255, 255, 255, 0.75)' : '#6c757d',
-              border: `1px solid ${theme === 'blue' ? 'rgba(255, 255, 255, 0.8)' : (theme === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0,0,0,0.1)')}`,
-              backdropFilter: theme === 'blue' ? 'blur(10px)' : 'none',
-              WebkitBackdropFilter: theme === 'blue' ? 'blur(10px)' : 'none',
+            className="badge rounded-pill px-2.5 py-1 px-md-3 py-md-1.5 fw-semibold shadow-sm"
+            style={{
+              fontSize: '0.78rem',
+              padding: '4px 12px',
+              ...(notebook.notebook_categories?.color ? {
+                backgroundColor: theme === 'blue' ? 'rgba(255, 255, 255, 0.9)' : (theme === 'dark' ? `${notebook.notebook_categories.color}4D` : `${notebook.notebook_categories.color}15`),
+                color: theme === 'dark' ? 'rgba(255, 255, 255, 0.9)' : notebook.notebook_categories.color,
+                border: `1px solid ${theme === 'blue' ? 'rgba(255, 255, 255, 0.8)' : (theme === 'dark' ? `${notebook.notebook_categories.color}66` : `${notebook.notebook_categories.color}30`)}`,
+                backdropFilter: theme === 'blue' ? 'blur(10px)' : 'none',
+                WebkitBackdropFilter: theme === 'blue' ? 'blur(10px)' : 'none',
+              } : {
+                backgroundColor: theme === 'blue' ? 'rgba(255, 255, 255, 0.9)' : (theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0,0,0,0.05)'),
+                color: theme === 'dark' ? 'rgba(255, 255, 255, 0.75)' : '#6c757d',
+                border: `1px solid ${theme === 'blue' ? 'rgba(255, 255, 255, 0.8)' : (theme === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0,0,0,0.1)')}`,
+                backdropFilter: theme === 'blue' ? 'blur(10px)' : 'none',
+                WebkitBackdropFilter: theme === 'blue' ? 'blur(10px)' : 'none',
+              }),
             }}
           >
             {notebook.notebook_categories?.name || notebook.category || 'Other'}
           </span>
+          <span className="ms-auto d-md-none text-secondary fw-semibold" style={{ fontSize: '0.78rem' }}>
+            {filteredNotes.length} Note{filteredNotes.length !== 1 ? 's' : ''}
+          </span>
         </div>
         
-        <div className="col-12 col-md-auto d-flex flex-column flex-md-row justify-content-md-end align-items-stretch align-items-md-center gap-3 order-3 order-md-2 mt-4 mt-md-0">
+        <div className="col-12 col-md-auto d-flex flex-row justify-content-between justify-content-md-end align-items-center gap-2 order-3 order-md-2 mt-1 mt-md-0 note-page-toolbar">
           <div 
-            className={`w-100 w-md-auto d-flex justify-content-between align-items-center p-2 px-3 rounded-pill ${theme === 'dark' ? 'bg-dark border border-secondary border-opacity-25' : 'bg-light border border-light-subtle shadow-sm'}`} 
+            className={`d-flex justify-content-between align-items-center px-2 px-md-3 rounded-pill flex-shrink-0 note-page-flashcard-pill ${theme === 'dark' ? 'bg-dark border border-secondary border-opacity-25' : 'bg-light border border-light-subtle shadow-sm'}`} 
             title="Hide contents to practice your memory"
             style={{ minHeight: '38px' }}
           >
-            <label className="form-check-label fw-semibold text-secondary d-flex align-items-center mb-0" htmlFor="flashcardSwitch" style={{ cursor: 'pointer', userSelect: 'none', fontSize: '0.875rem' }}>
-              <i className="bi bi-lightning-charge-fill text-warning me-2"></i>
-              Flashcard Mode
+            <label className="form-check-label fw-semibold text-secondary d-flex align-items-center mb-0 text-nowrap note-page-toolbar-text" htmlFor="flashcardSwitch" style={{ cursor: 'pointer', userSelect: 'none', fontSize: '0.875rem' }}>
+              <i className="bi bi-lightning-charge-fill text-warning me-1 me-md-2"></i>
+              <span className="d-none d-sm-inline">Flashcard Mode</span>
+              <span className="d-inline d-sm-none">Flashcard</span>
             </label>
-            <div className="form-check form-switch m-0 p-0 ms-3 d-flex align-items-center">
+            <div className="form-check form-switch m-0 p-0 ms-1.5 ms-md-3 d-flex align-items-center" style={{ marginLeft: '6px' }}>
               <input 
-                className="form-check-input m-0 shadow-sm" 
+                className="form-check-input m-0 shadow-sm note-page-flashcard-switch" 
                 type="checkbox" 
                 role="switch" 
                 id="flashcardSwitch" 
                 checked={isFlashcardMode} 
                 onChange={(e) => setIsFlashcardMode(e.target.checked)} 
-                style={{ width: '2.5rem', height: '1.25rem', cursor: 'pointer', marginLeft: 0 }} 
+                style={{ width: '2.4rem', height: '1.2rem', cursor: 'pointer', marginLeft: 0 }} 
               />
             </div>
           </div>
           
-          <div className="d-flex align-items-center gap-2 w-100 w-md-auto">
+          <div className="d-flex align-items-center flex-shrink-0" style={{ gap: '6px' }}>
             <AppButton 
               variant="light"
-              className="bg-white border shadow-sm text-secondary transition-all px-3 flex-grow-1 d-flex justify-content-center"
+              className="bg-white border shadow-sm text-secondary transition-all px-2 px-md-3 d-flex align-items-center justify-content-center note-page-categories-btn"
               onClick={() => categoryManagerModal.open()}
               style={{ fontSize: '0.875rem', height: '38px' }}
               onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
@@ -305,20 +346,20 @@ export default function NotebookDetail() {
             </AppButton>
             
             <div 
-              className={`d-flex shadow-sm border rounded-pill p-1 position-relative flex-grow-1 ${
+              className={`d-flex shadow-sm border rounded-pill p-1 position-relative note-page-view-toggle ${
                 theme === 'dark' ? 'bg-dark border-light border-opacity-10' : 
                 theme === 'blue' ? 'bg-white border-primary border-opacity-25' : 
                 'bg-white border-light-subtle'
               }`} 
-              style={{ minWidth: '160px', height: '38px' }}
+              style={{ minWidth: '150px', height: '38px' }}
             >
               <div 
                 className={`rounded-pill position-absolute`} 
                 style={{
-                  top: '4px',
-                  bottom: '4px',
-                  left: '4px',
-                  width: 'calc(50% - 4px)',
+                  top: '3px',
+                  bottom: '3px',
+                  left: '3px',
+                  width: 'calc(50% - 3px)',
                   transform: viewMode === 'list' ? 'translateX(0)' : 'translateX(100%)',
                   transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s',
                   backgroundColor: theme === 'dark' ? '#ffffff' : theme === 'blue' ? 'var(--bs-primary)' : '#212529',
@@ -326,16 +367,16 @@ export default function NotebookDetail() {
                 }}
               ></div>
               <button 
-                className={`btn btn-sm rounded-pill flex-grow-1 border-0 ${viewMode === 'list' ? (theme === 'dark' ? 'text-black fw-bold' : 'text-white fw-bold') : 'text-secondary'}`}
+                className={`btn btn-sm rounded-pill flex-grow-1 border-0 d-flex align-items-center justify-content-center note-page-toolbar-text ${viewMode === 'list' ? (theme === 'dark' ? 'text-black fw-bold' : 'text-white fw-bold') : 'text-secondary'}`}
                 onClick={() => handleViewModeChange('list')}
-                style={{ transition: 'color 0.3s', zIndex: 1, padding: '0.25rem 0', fontSize: '0.875rem' }}
+                style={{ transition: 'color 0.3s', zIndex: 1, padding: '0 6px', fontSize: '0.875rem' }}
               >
                 <i className="bi bi-list me-1"></i> List
               </button>
               <button 
-                className={`btn btn-sm rounded-pill flex-grow-1 border-0 ${viewMode === 'grid' ? (theme === 'dark' ? 'text-black fw-bold' : 'text-white fw-bold') : 'text-secondary'}`}
+                className={`btn btn-sm rounded-pill flex-grow-1 border-0 d-flex align-items-center justify-content-center note-page-toolbar-text ${viewMode === 'grid' ? (theme === 'dark' ? 'text-black fw-bold' : 'text-white fw-bold') : 'text-secondary'}`}
                 onClick={() => handleViewModeChange('grid')}
-                style={{ transition: 'color 0.3s', zIndex: 1, padding: '0.25rem 0', fontSize: '0.875rem' }}
+                style={{ transition: 'color 0.3s', zIndex: 1, padding: '0 6px', fontSize: '0.875rem' }}
               >
                 <i className="bi bi-grid me-1"></i> Grid
               </button>
@@ -344,20 +385,24 @@ export default function NotebookDetail() {
         </div>
 
         {notebook.description && (
-          <div className="col-12 order-2 order-md-3 mt-4 mt-md-3">
+          <div className="col-12 order-2 order-md-3 mt-2 mt-md-3">
             <div 
-              className={`p-4 rounded-4 transition-all ${theme === 'dark' ? 'bg-dark border border-secondary border-opacity-25' : 'bg-light border border-light-subtle'}`}
+              className={`p-4 rounded-4 transition-all note-page-desc-box ${theme === 'dark' ? 'bg-dark border border-secondary border-opacity-25' : 'bg-light border border-light-subtle'}`}
               style={{ cursor: isOverflowing ? 'pointer' : 'default' }}
               onClick={() => isOverflowing && setIsDescriptionExpanded(!isDescriptionExpanded)}
             >
-              <div ref={containerRef} style={{ 
-                height: isDescriptionExpanded ? (descHeight ? `${descHeight}px` : 'auto') : '3.6rem', 
-                overflow: 'hidden',
-                transition: 'height 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                position: 'relative'
-              }}>
+              <div
+                ref={containerRef}
+                className={`note-page-desc-collapse ${isDescriptionExpanded ? 'expanded' : ''}`}
+                style={{ 
+                  height: isDescriptionExpanded ? (descHeight ? `${descHeight}px` : 'auto') : '3.6rem', 
+                  overflow: 'hidden',
+                  transition: 'height 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  position: 'relative'
+                }}
+              >
                 <div ref={descriptionRef}>
-                  <p className="text-secondary fs-6 mb-0" style={{ lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
+                  <p className="text-secondary fs-6 mb-0 note-page-desc-text" style={{ lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
                     {notebook.description}
                   </p>
                 </div>
@@ -368,7 +413,7 @@ export default function NotebookDetail() {
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      height: '2rem',
+                      height: '1.6rem',
                       background: `linear-gradient(transparent, ${theme === 'dark' ? '#212529' : '#f8f9fa'})`,
                       pointerEvents: 'none'
                     }}
@@ -376,8 +421,8 @@ export default function NotebookDetail() {
                 )}
               </div>
               {isOverflowing && (
-                <div className="text-center mt-2 mb-n2">
-                  <span className="small fw-semibold text-primary" style={{ opacity: 0.85 }}>
+                <div className="text-center mt-1 mt-md-2 mb-n1 mb-md-n2">
+                  <span className="small fw-semibold text-primary note-page-desc-toggle" style={{ opacity: 0.85 }}>
                     {isDescriptionExpanded ? 'Show less' : 'Show more'}
                   </span>
                 </div>
@@ -387,7 +432,7 @@ export default function NotebookDetail() {
         )}
       </div>
 
-      <div className="row g-3 align-items-center mb-4">
+      <div className="row g-2 g-md-3 align-items-center mb-2 mb-md-4">
         <div className="col-12 col-md-4 col-lg-3">
           <SearchBar 
             value={searchQuery} 
@@ -400,8 +445,8 @@ export default function NotebookDetail() {
         <div className="col-12 col-md-8 col-lg-9 d-flex overflow-hidden">
           <div 
             ref={scrollContainerRef}
-            className="d-flex gap-2 flex-nowrap overflow-x-auto pb-2 pt-1 custom-scrollbar-hide pe-3 flex-grow-1"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', scrollBehavior: isDragging.current ? 'auto' : 'smooth', WebkitOverflowScrolling: 'touch', cursor: 'grab' }}
+            className="d-flex flex-nowrap overflow-x-auto pb-1 pt-1 custom-scrollbar-hide pe-2 pe-md-3 flex-grow-1"
+            style={{ gap: '6px', scrollbarWidth: 'none', msOverflowStyle: 'none', scrollBehavior: isDragging.current ? 'auto' : 'smooth', WebkitOverflowScrolling: 'touch', cursor: 'grab' }}
             {...events}
           >
           <style>{`
@@ -432,7 +477,7 @@ export default function NotebookDetail() {
 
         </div>
         
-        <div className="text-secondary fw-semibold flex-shrink-0 ps-3 border-start d-flex align-items-center" style={{ height: '32px' }}>
+        <div className="text-secondary fw-semibold flex-shrink-0 ps-3 border-start d-none d-md-flex align-items-center small" style={{ height: '32px' }}>
           {filteredNotes.length} Note{filteredNotes.length !== 1 ? 's' : ''}
         </div>
       </div>
@@ -470,7 +515,7 @@ export default function NotebookDetail() {
           const renderNoteCard = (note, index) => (
             <div
               key={note.id}
-              className={`${viewMode === 'grid' ? 'col-12 col-md-6 col-lg-4' : 'col-12'} animate-fade-slide-up`}
+              className={`${viewMode === 'grid' ? 'col-6 col-lg-4' : 'col-12'} animate-fade-slide-up`}
               style={{ animationDelay: `${(index ?? 0) * 40}ms` }}
             >
               <NoteCard
@@ -494,21 +539,21 @@ export default function NotebookDetail() {
           if (pinnedNotes.length > 0) {
             return (
               <div className="col-12" key={animKey}>
-                <div className="d-flex align-items-center gap-2 mb-3 mt-2">
+                <div className="d-flex align-items-center gap-2 mb-2 mt-1">
                   <i className="bi bi-pin-angle-fill text-warning"></i>
-                  <h6 className="mb-0 fw-bold text-secondary text-uppercase tracking-wider" style={{ fontSize: '0.8rem', letterSpacing: '1px' }}>Pinned</h6>
+                  <h6 className="mb-0 fw-bold text-secondary text-uppercase tracking-wider" style={{ fontSize: '0.76rem', letterSpacing: '1px' }}>Pinned</h6>
                 </div>
-                <div className="row g-4 mb-5">
+                <div className="row g-2 g-md-4 mb-3 mb-md-4">
                   {pinnedNotes.map(renderNoteCard)}
                 </div>
                 
                 {unpinnedNotes.length > 0 && (
                   <>
-                    <div className="d-flex align-items-center gap-3 mb-4">
-                      <h6 className="mb-0 fw-bold text-secondary text-uppercase tracking-wider" style={{ fontSize: '0.8rem', letterSpacing: '1px' }}>Others</h6>
+                    <div className="d-flex align-items-center gap-3 mb-2 mb-md-3">
+                      <h6 className="mb-0 fw-bold text-secondary text-uppercase tracking-wider" style={{ fontSize: '0.76rem', letterSpacing: '1px' }}>Others</h6>
                       <div className="flex-grow-1 border-bottom" style={{ opacity: 0.1 }}></div>
                     </div>
-                    <div className="row g-4">
+                    <div className="row g-2 g-md-4">
                       {unpinnedNotes.map(renderNoteCard)}
                     </div>
                   </>
@@ -519,7 +564,7 @@ export default function NotebookDetail() {
 
           return (
             <div className="col-12" key={animKey}>
-              <div className="row g-4">
+              <div className="row g-2 g-md-4">
                 {filteredNotes.map(renderNoteCard)}
               </div>
             </div>
@@ -536,30 +581,30 @@ export default function NotebookDetail() {
       )}
 
       {notes.length > 0 && (
-        <div className="position-fixed bottom-0 end-0 p-4" style={{ zIndex: 1000 }}>
-          <AddButton onClick={() => addModal.open()} label="New Note" />
-        </div>
+        <AddButton onClick={() => addModal.open()} label="New Note" />
       )}
       
       <AddNoteModal
         show={addModal.isOpen}
         onClose={() => addModal.close()}
         notebookId={id}
-        categories={categories}
+        categories={notebookCategories}
+        onManageCategories={() => categoryManagerModal.open()}
       />
       
       <EditNoteModal
         show={editModal.isOpen}
         onClose={() => editModal.close()}
         noteData={noteToEdit}
-        categories={categories}
+        categories={notebookCategories}
+        onManageCategories={() => categoryManagerModal.open()}
       />
       
       <ViewNoteModal
         show={viewModal.isOpen}
         onClose={() => viewModal.close()}
         noteData={noteToView}
-        categoryObj={noteToView ? categories.find(c => c.id === noteToView.category_id) : null}
+        categoryObj={noteToView ? usedCategories.find(c => c.id === noteToView.category_id) || categories.find(c => c.id === noteToView.category_id) : null}
         isFlashcardMode={isFlashcardMode}
         hasPrev={noteToView && filteredNotes.findIndex(n => n.id === noteToView.id) > 0}
         hasNext={noteToView && filteredNotes.findIndex(n => n.id === noteToView.id) < filteredNotes.length - 1}
@@ -567,6 +612,7 @@ export default function NotebookDetail() {
           const idx = filteredNotes.findIndex(n => n.id === noteToView.id);
           if (idx > 0) setNoteToView(filteredNotes[idx - 1]);
         }}
+        onNoteUpdated={(updated) => setNoteToView(updated)}
         onNext={() => {
           const idx = filteredNotes.findIndex(n => n.id === noteToView.id);
           if (idx < filteredNotes.length - 1) setNoteToView(filteredNotes[idx + 1]);
@@ -580,8 +626,8 @@ export default function NotebookDetail() {
         title="Delete Note?"
         message={
           <>
-            Are you sure you want to delete "{noteToDelete?.title ? noteToDelete.title.charAt(0).toUpperCase() + noteToDelete.title.slice(1) : 'this note'}"?<br />
-            This action cannot be undone.
+            Are you sure you want to delete <strong>"{noteToDelete?.title ? noteToDelete.title.charAt(0).toUpperCase() + noteToDelete.title.slice(1) : 'this note'}"</strong>?<br />
+            <span className="d-block mt-1">This action cannot be undone</span>
           </>
         }
         isDeleting={isDeleting}
@@ -591,7 +637,9 @@ export default function NotebookDetail() {
         <NoteCategoryManager
           show={categoryManagerModal.isOpen}
           onClose={() => categoryManagerModal.close()}
-          onCategoryUpdate={handleCategoryUpdate} 
+          onCategoryUpdate={handleCategoryUpdate}
+          notebookId={id}
+          usedCategoryIds={usedCategoryIds}
         />
       )}
       </div>

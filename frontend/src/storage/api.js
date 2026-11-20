@@ -65,8 +65,9 @@ export const togglePinNote = async (id, isPinned) => {
 
 // --- Note Categories ---
 
-export const getNoteCategories = async () => {
-  return await axiosClient.get(`/note-categories`);
+export const getNoteCategories = async (notebookId) => {
+  const query = notebookId ? `?notebookId=${encodeURIComponent(notebookId)}` : '';
+  return await axiosClient.get(`/note-categories${query}`);
 };
 
 export const createNoteCategory = async (data) => {

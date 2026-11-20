@@ -4,14 +4,15 @@
   <img src="./screenshots/Home.png" alt="DevNotes Home">
 </div>
 
-DevNotes is a modern knowledge base application designed for developers and learners. It allows you to organize study materials, code snippets, and ideas into isolated notebooks with full Markdown support, syntax highlighting, and a built-in Flashcard mode to help you review and remember information.
+DevNotes is a modern knowledge base application designed for developers and learners. It allows you to organize study materials, code snippets, and ideas into isolated notebooks with full Markdown support, syntax highlighting, interactive checklists, sticky notes, and a built-in Flashcard mode to help you review and remember information.
 
 ---
 
 ## 📖 User Guide (How to use)
 
-### 1. Managing Notebooks
-- **Notebooks** act as folders. Create a notebook for a broad topic (e.g., `React.js Basics` or `English Vocabulary`).
+### 1. Managing Notebooks & Sticky Checklist 📌
+- **Sticky Checklist:** A post-it style quick task list right on your Home screen! Jot down quick todos, toggle checkboxes, pick different paper colors (Yellow, Pink, Green, Blue, Purple), and collapse or unfold whenever you want.
+- **Notebooks:** Act as folders. Create a notebook for a broad topic (e.g., `React.js Basics` or `English Vocabulary`).
 - Inside each notebook, you can create multiple **Notes** to keep your knowledge organized.
 
 <div align="center">
@@ -20,8 +21,9 @@ DevNotes is a modern knowledge base application designed for developers and lear
   <img src="./screenshots/NewNoteBooks.png" alt="New Notebook">
 </div>
 
-### 2. Writing Notes (Markdown)
-DevNotes supports standard Markdown, allowing you to format code and text:
+### 2. Writing Notes & Interactive Checklists ✅
+DevNotes supports standard Markdown along with interactive task checklists:
+- **Checklists / Tasks:** Use `- [ ] Task name` for to-do items and `- [x] Task name` for completed ones. In Note View, click any checkbox to check/uncheck it interactively with auto-save!
 - **Headings:** `# Heading 1`, `## Heading 2`
 - **Text Styling:** `**bold**`, `*italic*`, `~~strikethrough~~`
 - **Code Blocks:** Use triple backticks (```) followed by the language name (e.g., `javascript` or `python`) for syntax highlighting.
@@ -60,6 +62,8 @@ Customize your workspace by clicking your Profile > Theme. Choose between **Ligh
 
 ## ✨ System Features
 
+- **📌 Home Sticky Checklist:** Post-it style widget on the home page for instant todos with progress tracking and pastel paper themes.
+- **✅ Interactive Note Checklists:** Clickable checkboxes in Markdown notes with progress bars on Note Cards and auto-save.
 - **📚 Clean Workspace:** Isolated notebooks for clutter-free reading.
 - **💻 Syntax Highlighting:** Supports multiple programming languages with fast load times.
 - **🔐 Secure Authentication:** Secure login system. Your notes are private and only visible to you.

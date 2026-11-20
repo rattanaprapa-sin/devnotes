@@ -17,12 +17,17 @@ app.use(express.json());
 // API Request Logging
 app.use(morgan('dev')); // e.g., GET /api/notebooks 200 12ms
 
-// Rate Limiting (Max 100 requests per 15 minutes per IP)
+// Rate Limiting (Generous for interactive SPA, higher in development)
+const isDev = process.env.NODE_ENV !== 'production';
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
-  max: 100, 
-  standardHeaders: true, 
+  windowMs: 15 * 60 * 1000,
+  max: isDev ? 5000 : 1000,
+  standardHeaders: true,
   legacyHeaders: false,
+  message: {
+    status: 429,
+    message: 'Too many requests, please try again later.'
+  }
 });
 app.use('/api', limiter);
 

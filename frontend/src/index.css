@@ -514,3 +514,1102 @@ input:-webkit-autofill:active {
   color: transparent !important;
   /* Soft Pastel Blue */
 }
+
+
+/* Interactive Markdown Task List */
+.task-list-item {
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.task-list-item:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-bs-theme="dark"] .task-list-item:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.task-list-item:has(input[type="checkbox"]:checked) {
+  opacity: 0.6;
+  text-decoration: line-through;
+}
+
+.task-list-item:has(input[type="checkbox"]:checked) code {
+  text-decoration: line-through;
+  opacity: 0.8;
+}
+
+.task-list-item input[type="checkbox"] {
+  cursor: pointer;
+  accent-color: var(--bs-primary);
+  margin: 0 !important;
+  float: none !important;
+  position: static !important;
+  flex-shrink: 0 !important;
+}
+
+
+/* Markdown Content Spacing (ViewNoteModal) */
+.task-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.375rem 0.75rem;
+}
+.task-list-item:has(input[type="checkbox"]:checked) .task-item-text {
+  text-decoration: line-through;
+}
+.note-markdown-view {
+  line-height: 1.6;
+}
+.note-markdown-view p {
+  margin-bottom: 0.5rem;
+}
+.note-markdown-view ol,
+.note-markdown-view ul {
+  margin-bottom: 0.5rem;
+  padding-left: 1.5rem;
+}
+.note-markdown-view li {
+  margin-bottom: 0.25rem;
+  line-height: 1.55;
+}
+.note-markdown-view li > p {
+  margin-bottom: 0 !important;
+  display: inline;
+}
+.note-markdown-view p:last-child,
+.note-markdown-view ol:last-child,
+.note-markdown-view ul:last-child {
+  margin-bottom: 0;
+}
+
+
+/* WYSIWYG Editor Styles (TipTap / Word-style Table & Task List) */
+.wysiwyg-editor-wrapper {
+  border-color: #212529 !important;
+}
+
+.wysiwyg-editor-wrapper:focus-within {
+  border-color: #212529 !important;
+  box-shadow: 0 0 0 0.2rem rgba(33, 37, 41, 0.16) !important;
+}
+
+[data-bs-theme="dark"] .wysiwyg-editor-wrapper {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+[data-bs-theme="dark"] .wysiwyg-editor-wrapper:focus-within {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.1) !important;
+}
+
+.wysiwyg-editor-content {
+  line-height: 1.6;
+  font-family: inherit;
+  min-height: 100%;
+}
+
+.wysiwyg-editor-content:focus {
+  outline: none;
+}
+
+.wysiwyg-editor-content p {
+  margin-bottom: 0.5rem;
+}
+
+.wysiwyg-editor-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* Headings */
+.wysiwyg-editor-content h1 {
+  font-size: 1.45rem;
+  font-weight: 700;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.wysiwyg-editor-content h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 0.85rem;
+  margin-bottom: 0.4rem;
+}
+
+.wysiwyg-editor-content h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+/* Lists */
+.wysiwyg-editor-content ul:not([data-type="taskList"]),
+.wysiwyg-editor-content ol {
+  padding-left: 1.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.wysiwyg-editor-content li {
+  margin-bottom: 0.2rem;
+}
+
+/* Task lists (Checklists) */
+.wysiwyg-editor-content ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 0.5rem;
+}
+
+.wysiwyg-editor-content ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.wysiwyg-editor-content ul[data-type="taskList"] li > label {
+  display: flex;
+  align-items: center;
+  user-select: none;
+  cursor: pointer;
+  margin-top: 0.22rem;
+  flex-shrink: 0;
+}
+
+.wysiwyg-editor-content ul[data-type="taskList"] li > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.wysiwyg-editor-content ul[data-type="taskList"] li > div > p {
+  margin-bottom: 0;
+}
+
+.wysiwyg-editor-content ul[data-type="taskList"] li input[type="checkbox"] {
+  cursor: pointer;
+  accent-color: var(--bs-primary);
+  width: 15px;
+  height: 15px;
+  margin: 0;
+}
+
+.wysiwyg-editor-content ul[data-type="taskList"] li[data-checked="true"] > div {
+  text-decoration: line-through;
+  opacity: 0.65;
+}
+
+/* Word-style Visual Tables */
+.wysiwyg-editor-content table {
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+  table-layout: fixed;
+  width: 100%;
+  overflow: hidden;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+/* Word-style Right-Click Context Menu */
+.word-context-menu-item {
+  transition: background-color 0.12s ease;
+  border-radius: 6px;
+}
+
+.word-context-menu-item:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #2563eb !important;
+}
+
+[data-bs-theme="dark"] .word-context-menu-item:hover {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #60a5fa !important;
+}
+
+.word-context-menu-item.danger:hover {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  color: #dc2626 !important;
+}
+
+.wysiwyg-editor-content th,
+.wysiwyg-editor-content td {
+  border: 1px solid rgba(0, 0, 0, 0.13);
+  box-sizing: border-box;
+  min-width: 60px;
+  padding: 4px 8px;
+  position: relative;
+  vertical-align: middle;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+/* Prevent any size change on hover/resize interaction */
+.wysiwyg-editor-content th *,
+.wysiwyg-editor-content td * {
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
+[data-bs-theme="dark"] .wysiwyg-editor-content th,
+[data-bs-theme="dark"] .wysiwyg-editor-content td {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.wysiwyg-editor-content th {
+  background-color: rgba(0, 0, 0, 0.04);
+  font-weight: 600;
+  text-align: left;
+}
+
+[data-bs-theme="dark"] .wysiwyg-editor-content th {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.wysiwyg-editor-content .selectedCell:after {
+  background: rgba(79, 70, 229, 0.1);
+  content: "";
+  left: 0; right: 0; top: 0; bottom: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+/* Column resize handle — thin, non-intrusive */
+.wysiwyg-editor-content .column-resize-handle {
+  background-color: #4f46e5;
+  bottom: 0;
+  pointer-events: none;
+  position: absolute;
+  right: -1px;
+  top: 0;
+  width: 2px;
+  z-index: 10;
+  opacity: 0.5;
+}
+
+/* Wrapper to contain resize cursor without affecting content */
+.wysiwyg-editor-content .tableWrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent table resize from changing text size */
+.wysiwyg-editor-content table p {
+  margin: 0;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* Responsive Sticky Checklist Positioning */
+.sticky-checklist-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  z-index: 1015;
+  pointer-events: none;
+}
+
+.sticky-checklist-popover {
+  pointer-events: auto;
+  width: min(380px, calc(100vw - 24px));
+  transform-origin: top center;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+@keyframes stickyNoteOpen {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.86) rotate(-1deg);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(2px) scale(1.015) rotate(0.2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes stickyNoteClose {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.86) rotate(-0.8deg);
+  }
+}
+
+@keyframes stickyPillIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-sticky-note-open {
+  animation: stickyNoteOpen 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-sticky-note-close {
+  animation: stickyNoteClose 0.22s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  pointer-events: none !important;
+}
+
+.animate-sticky-pill-in {
+  animation: stickyPillIn 0.26s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@media (min-width: 992px) {
+  .sticky-checklist-wrapper {
+    position: fixed;
+    top: 88px;
+    right: 0;
+    width: auto;
+    align-items: flex-end;
+    margin-bottom: 0;
+    margin-right: 3rem;
+  }
+
+  .sticky-checklist-popover {
+    transform-origin: top right;
+  }
+}
+
+/* Compact Mobile Layout Refinements */
+.app-card-body {
+  padding: 1.15rem 1.25rem;
+}
+
+.app-card-badge-wrap {
+  margin-bottom: 0.75rem;
+}
+
+.floating-add-btn {
+  padding: 0.7rem 1.35rem !important;
+  font-size: 0.95rem !important;
+}
+
+.cat-preset-colors-row {
+  display: contents;
+}
+
+@media (max-width: 767.98px) {
+  /* Navbar & Profile Dropdown Mobile Refinements */
+  .app-navbar {
+    padding-top: 0.35rem !important;
+    padding-bottom: 0.35rem !important;
+  }
+
+  .app-navbar-brand {
+    font-size: 1.15rem !important;
+  }
+
+  .app-navbar-guide-btn {
+    width: 31px !important;
+    height: 31px !important;
+  }
+
+  .app-navbar-guide-btn i {
+    font-size: 0.9rem !important;
+  }
+
+  .app-navbar-profile-btn {
+    height: 31px !important;
+    padding: 0 9px !important;
+  }
+
+  .app-navbar-profile-icon {
+    font-size: 0.92rem !important;
+  }
+
+  .app-navbar-profile-name {
+    font-size: 0.76rem !important;
+    max-width: 105px !important;
+  }
+
+  .app-navbar-profile-chevron {
+    font-size: 0.65rem !important;
+  }
+
+  .app-navbar-dropdown {
+    width: 168px !important;
+    border-radius: 10px !important;
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+  }
+
+  .app-navbar-dropdown-item {
+    padding: 0.38rem 0.75rem !important;
+    font-size: 0.78rem !important;
+  }
+
+  .app-navbar-dropdown-divider {
+    margin: 0.2rem 0 !important;
+  }
+
+  .app-navbar-theme-section {
+    padding: 0.3rem 0.75rem !important;
+  }
+
+  .app-navbar-theme-label {
+    font-size: 0.62rem !important;
+    margin-bottom: 0.3rem !important;
+  }
+
+  .app-navbar-theme-btn {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  .app-navbar-theme-btn i {
+    font-size: 0.78rem !important;
+  }
+
+  .sticky-checklist-wrapper {
+    margin-bottom: 0.45rem;
+  }
+
+  .sticky-checklist-trigger {
+    padding: 3px 8px 3px 4px !important;
+    gap: 4px !important;
+  }
+
+  .sticky-checklist-trigger-icon {
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 0.68rem !important;
+  }
+
+  .sticky-checklist-trigger-label {
+    font-size: 0.74rem !important;
+  }
+
+  .sticky-checklist-trigger-badge {
+    font-size: 0.62rem !important;
+    padding: 1.5px 5px !important;
+  }
+
+  .sticky-checklist-trigger-chevron {
+    width: 15px !important;
+    height: 15px !important;
+  }
+
+  .sticky-checklist-popover {
+    width: min(290px, calc(100vw - 32px)) !important;
+  }
+
+  .sticky-checklist-card {
+    padding: 0.55rem 0.65rem !important;
+    border-radius: 12px !important;
+  }
+
+  .sticky-checklist-header {
+    margin-bottom: 0.4rem !important;
+  }
+
+  .sticky-checklist-card-icon {
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 0.66rem !important;
+  }
+
+  .sticky-checklist-card-title {
+    font-size: 0.76rem !important;
+  }
+
+  .sticky-checklist-controls {
+    gap: 5px !important;
+  }
+
+  .sticky-checklist-color-picker {
+    padding: 2px 5px !important;
+    gap: 4px !important;
+  }
+
+  .sticky-checklist-color-dot {
+    width: 9px !important;
+    height: 9px !important;
+  }
+
+  .sticky-checklist-collapse-btn {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .sticky-checklist-collapse-btn i {
+    font-size: 0.62rem !important;
+  }
+
+  .sticky-checklist-form {
+    margin-bottom: 0.4rem !important;
+  }
+
+  .sticky-checklist-input-wrapper {
+    padding: 0.1rem 0.2rem 0.1rem 0.55rem !important;
+  }
+
+  .sticky-checklist-input-icon {
+    font-size: 0.68rem !important;
+    margin-right: 0.3rem !important;
+  }
+
+  .sticky-checklist-input {
+    font-size: 0.72rem !important;
+    padding-top: 0.1rem !important;
+    padding-bottom: 0.1rem !important;
+  }
+
+  .sticky-checklist-add-btn {
+    font-size: 0.66rem !important;
+    padding: 2px 9px !important;
+  }
+
+  .sticky-checklist-tasks-container {
+    max-height: 120px !important;
+    gap: 0.25rem !important;
+  }
+
+  .sticky-checklist-task-item {
+    padding: 4px 8px !important;
+    border-radius: 7px !important;
+  }
+
+  .sticky-checklist-checkbox {
+    width: 13px !important;
+    height: 13px !important;
+    border-radius: 3px !important;
+  }
+
+  .sticky-checklist-checkbox i {
+    font-size: 0.56rem !important;
+  }
+
+  .sticky-checklist-task-text {
+    font-size: 0.72rem !important;
+    line-height: 1.3 !important;
+  }
+
+  .sticky-checklist-task-item button i {
+    font-size: 0.7rem !important;
+  }
+
+  .sticky-checklist-footer {
+    margin-top: 0.4rem !important;
+    padding-top: 0.3rem !important;
+  }
+
+  .sticky-checklist-progress {
+    height: 3px !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  .sticky-checklist-footer-text {
+    font-size: 0.66rem !important;
+  }
+
+  .app-card-body {
+    padding: 0.6rem 0.7rem !important;
+  }
+
+  .app-card-body .card-title {
+    font-size: 0.84rem !important;
+    line-height: 1.3 !important;
+    margin-bottom: 0.1rem !important;
+  }
+
+  .app-card-body .app-card-text {
+    margin-top: 0.1rem;
+    font-size: 0.74rem !important;
+    line-height: 1.35 !important;
+  }
+
+  .app-card-body .app-card-text,
+  .app-card-body .card-text {
+    line-clamp: 2 !important;
+    -webkit-line-clamp: 2 !important;
+  }
+
+  .app-card-footer {
+    border-top-color: rgba(0, 0, 0, 0.06) !important;
+    padding-top: 0.4rem !important;
+    gap: 4px;
+  }
+
+  .app-card-footer .app-card-meta {
+    font-size: 0.7rem !important;
+  }
+
+  .app-card-footer .app-card-meta i {
+    display: none;
+  }
+
+  .app-card-action-btn {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
+    font-size: 0.68rem !important;
+  }
+
+  .min-w-0 {
+    min-width: 0;
+  }
+
+  .app-card-badge-wrap {
+    margin-bottom: 0.4rem !important;
+  }
+
+  .app-card-badge {
+    font-size: 0.68rem !important;
+    padding: 2px 8px !important;
+  }
+
+  .floating-add-btn {
+    padding: 0.42rem 0.9rem !important;
+    font-size: 0.8rem !important;
+  }
+
+  .category-filter-btn {
+    padding: 4px 12px !important;
+    font-size: 0.78rem !important;
+  }
+
+  /* Note Page Toolbar & Description Mobile Refinements */
+  .note-page-toolbar {
+    gap: 5px !important;
+  }
+
+  .note-page-flashcard-pill {
+    min-height: 31px !important;
+    height: 31px !important;
+    padding: 0 8px !important;
+  }
+
+  .note-page-toolbar-text {
+    font-size: 0.72rem !important;
+  }
+
+  .note-page-flashcard-switch {
+    width: 1.8rem !important;
+    height: 0.95rem !important;
+  }
+
+  .note-page-categories-btn {
+    height: 31px !important;
+    padding: 0 9px !important;
+    font-size: 0.72rem !important;
+  }
+
+  .note-page-view-toggle {
+    min-width: 108px !important;
+    height: 31px !important;
+  }
+
+  .note-page-desc-box {
+    padding: 0.65rem 0.85rem !important;
+    border-radius: 12px !important;
+  }
+
+  .note-page-desc-collapse:not(.expanded) {
+    height: 2.3rem !important;
+  }
+
+  .note-page-desc-text {
+    font-size: 0.78rem !important;
+    line-height: 1.45 !important;
+  }
+
+  .note-page-desc-toggle {
+    font-size: 0.72rem !important;
+  }
+
+  /* ViewNoteModal & All App Modals Mobile Refinements */
+  .modal-dialog {
+    max-width: min(335px, calc(100vw - 36px)) !important;
+    margin: 12px auto !important;
+  }
+
+  .modal-dialog.confirm-modal-dialog {
+    max-width: min(295px, calc(100vw - 44px)) !important;
+  }
+
+  .modal-content {
+    border-radius: 14px !important;
+  }
+
+  .modal-header {
+    padding: 0.6rem 0.85rem !important;
+  }
+
+  .modal-header .modal-title {
+    font-size: 0.94rem !important;
+  }
+
+  .modal-header .btn-close {
+    font-size: 0.7rem !important;
+  }
+
+  .modal-body {
+    padding: 0.7rem 0.85rem !important;
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
+  }
+
+  .modal-body.confirm-modal-body {
+    padding: 1.15rem 1rem !important;
+  }
+
+  .confirm-modal-icon-wrap {
+    margin-bottom: 0.55rem !important;
+  }
+
+  .confirm-modal-icon-circle {
+    width: 46px !important;
+    height: 46px !important;
+  }
+
+  .confirm-modal-icon {
+    font-size: 1.35rem !important;
+  }
+
+  .confirm-modal-title {
+    font-size: 0.96rem !important;
+    margin-bottom: 0.35rem !important;
+  }
+
+  .confirm-modal-message {
+    font-size: 0.76rem !important;
+    line-height: 1.45 !important;
+    margin-bottom: 0.85rem !important;
+    text-wrap: balance;
+  }
+
+  .confirm-modal-actions .btn,
+  .confirm-modal-body .btn {
+    font-size: 0.78rem !important;
+    padding: 0.36rem 0.9rem !important;
+  }
+
+  /* UserGuideModal Mobile Refinements */
+  .user-guide-section {
+    margin-bottom: 0.85rem !important;
+  }
+
+  .user-guide-heading {
+    font-size: 0.76rem !important;
+    margin-bottom: 0.45rem !important;
+  }
+
+  .user-guide-card {
+    padding: 0.55rem 0.7rem !important;
+    border-radius: 9px !important;
+  }
+
+  .user-guide-card-title {
+    font-size: 0.78rem !important;
+    margin-bottom: 0.2rem !important;
+  }
+
+  .user-guide-card-text {
+    font-size: 0.72rem !important;
+    line-height: 1.35 !important;
+  }
+
+  .user-guide-shortcuts {
+    font-size: 0.74rem !important;
+    gap: 0.35rem !important;
+  }
+
+  .user-guide-table {
+    font-size: 0.72rem !important;
+  }
+
+  .user-guide-table th,
+  .user-guide-table td {
+    padding: 0.35rem 0.5rem !important;
+  }
+
+  .modal-body .mb-3 {
+    margin-bottom: 0.55rem !important;
+  }
+
+  .modal-body .mb-4 {
+    margin-bottom: 0.65rem !important;
+  }
+
+  .modal-body .mb-5 {
+    margin-bottom: 0.9rem !important;
+  }
+
+  .modal-body hr.my-4 {
+    margin-top: 0.65rem !important;
+    margin-bottom: 0.65rem !important;
+  }
+
+  .modal-body .form-label {
+    font-size: 0.74rem !important;
+    margin-bottom: 0.2rem !important;
+  }
+
+  .modal-body .form-control {
+    padding: 0.35rem 0.65rem !important;
+    font-size: 0.78rem !important;
+  }
+
+  .modal-body textarea.form-control {
+    min-height: 72px !important;
+    max-height: 92px !important;
+  }
+
+  .modal-body .form-control input {
+    font-size: 0.78rem !important;
+  }
+
+  .modal-body .input-group-text {
+    padding: 0.35rem 0.6rem !important;
+    font-size: 0.78rem !important;
+  }
+
+  .wysiwyg-toolbar {
+    padding: 0.35rem 0.45rem !important;
+  }
+
+  .wysiwyg-toolbar .btn-sm {
+    font-size: 0.7rem !important;
+    padding: 0 0.4rem !important;
+  }
+
+  .wysiwyg-scroll-area {
+    height: 135px !important;
+    min-height: 135px !important;
+  }
+
+  .wysiwyg-editor-content {
+    padding: 0.55rem 0.75rem !important;
+    font-size: 0.82rem !important;
+    min-height: 120px !important;
+  }
+
+  .modal-footer {
+    padding: 0.5rem 0.9rem 0.75rem !important;
+  }
+
+  .modal-footer .btn {
+    font-size: 0.78rem !important;
+    padding: 0.38rem 1rem !important;
+  }
+
+  /* Category Manager Mobile Refinements */
+  .cat-manager-form {
+    padding: 0.55rem 0.65rem !important;
+    margin-bottom: 0.55rem !important;
+    border-radius: 10px !important;
+  }
+
+  .cat-manager-form-header {
+    margin-bottom: 0.4rem !important;
+    gap: 0.3rem !important;
+  }
+
+  .cat-manager-form-title {
+    font-size: 0.8rem !important;
+  }
+
+  .cat-manager-preview-box {
+    padding: 2px 7px !important;
+    gap: 4px !important;
+  }
+
+  .cat-manager-preview-label {
+    font-size: 0.66rem !important;
+  }
+
+  .cat-manager-preview-badge {
+    font-size: 0.66rem !important;
+    padding: 1.5px 6px !important;
+    max-width: 95px !important;
+  }
+
+  .cat-manager-cancel-btn {
+    font-size: 0.68rem !important;
+    padding: 2px 8px !important;
+  }
+
+  .cat-manager-fields-row {
+    --bs-gutter-y: 0.4rem !important;
+  }
+
+  .cat-manager-color-label {
+    margin-bottom: 0.1rem !important;
+  }
+
+  .cat-manager-swatches {
+    gap: 0.45rem !important;
+    padding-top: 0.15rem !important;
+  }
+
+  .cat-preset-colors-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+  }
+
+  .cat-custom-color-row {
+    width: 100% !important;
+    margin-top: 0.15rem !important;
+  }
+
+  .cat-color-swatch {
+    width: 21px !important;
+    height: 21px !important;
+    margin: 0 !important;
+  }
+
+  .cat-color-swatch i {
+    font-size: 12px !important;
+  }
+
+  .cat-hex-box {
+    padding: 1px 5px !important;
+  }
+
+  .cat-hex-input {
+    width: 44px !important;
+    font-size: 0.7rem !important;
+  }
+
+  .cat-manager-submit-row {
+    margin-top: 0.45rem !important;
+  }
+
+  .cat-manager-submit-btn {
+    font-size: 0.72rem !important;
+    padding: 0.3rem 0.95rem !important;
+  }
+
+  .cat-manager-list-title {
+    font-size: 0.78rem !important;
+    margin-bottom: 0.35rem !important;
+  }
+
+  .cat-manager-list-container {
+    min-height: 48px !important;
+  }
+
+  .cat-manager-scroll-area {
+    max-height: 25vh !important;
+  }
+
+  .cat-manager-grid {
+    --bs-gutter-y: 0.35rem !important;
+    --bs-gutter-x: 0.35rem !important;
+  }
+
+  .cat-item-card {
+    padding: 4px 6px !important;
+    border-radius: 10px !important;
+  }
+
+  .cat-item-grip {
+    font-size: 0.72rem !important;
+    padding: 0 1px !important;
+  }
+
+  .cat-item-badge {
+    font-size: 0.7rem !important;
+    padding: 2px 7px !important;
+  }
+
+  .cat-item-menu-option {
+    font-size: 0.76rem !important;
+  }
+
+  .cat-item-menu-option:active,
+  .cat-item-menu-option:hover {
+    background-color: #f1f5f9 !important;
+  }
+
+  .view-note-modal-header {
+    padding: 0.65rem 0.85rem 0.55rem !important;
+  }
+
+  .view-note-modal-title {
+    font-size: 0.96rem !important;
+  }
+
+  .view-note-modal-badge {
+    font-size: 0.68rem !important;
+    padding: 2px 8px !important;
+  }
+
+  .view-note-modal-date {
+    font-size: 0.7rem !important;
+  }
+
+  .view-note-hide-btn {
+    font-size: 0.7rem !important;
+    padding: 2px 9px !important;
+  }
+
+  .view-note-modal-body {
+    padding: 0.6rem 0.75rem !important;
+  }
+
+  .view-note-modal-body .note-markdown-view {
+    padding: 0.65rem 0.8rem !important;
+    font-size: 0.8rem !important;
+    min-height: 75px !important;
+    border-radius: 10px !important;
+  }
+
+  .view-note-modal-footer {
+    padding: 0.45rem 0.8rem !important;
+  }
+
+  .view-note-nav-btn {
+    width: 30px !important;
+    height: 30px !important;
+    padding: 0 !important;
+  }
+
+  .view-note-nav-btn i {
+    font-size: 0.82rem !important;
+  }
+
+  .view-note-close-btn {
+    padding: 0.32rem 1.1rem !important;
+    font-size: 0.78rem !important;
+  }
+
+  /* NoteCard Checklist Progress Mobile Refinements */
+  .app-card-checklist-wrap {
+    margin-bottom: 0.35rem !important;
+  }
+
+  .app-card-checklist-badge {
+    font-size: 0.62rem !important;
+    padding: 1px 6px !important;
+  }
+
+  .app-card-checklist-percent {
+    font-size: 0.64rem !important;
+  }
+
+  .app-card-checklist-bar {
+    height: 3px !important;
+  }
+}
+
+

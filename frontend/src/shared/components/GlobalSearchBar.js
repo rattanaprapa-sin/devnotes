@@ -81,7 +81,7 @@ export default function GlobalSearchBar({ value, onChange, placeholder = "Search
   const hasResults = results.notebooks.length > 0 || results.notes.length > 0;
 
   return (
-    <div className="d-flex justify-content-center mb-4 w-100" ref={containerRef}>
+    <div className="d-flex justify-content-center mb-2 w-100" ref={containerRef}>
       <div className="position-relative px-3 w-100" style={{ maxWidth: '600px' }}>
         <div 
           className={`d-flex align-items-center rounded-pill overflow-hidden transition-all ${
@@ -113,7 +113,7 @@ export default function GlobalSearchBar({ value, onChange, placeholder = "Search
           <input 
             id="global-search-input"
             type="text" 
-            className={`flex-grow-1 py-2 py-md-3 pe-4 bg-transparent ${theme === 'dark' ? 'text-light' : 'text-dark'}`}
+            className={`flex-grow-1 py-2 pe-4 bg-transparent ${theme === 'dark' ? 'text-light' : 'text-dark'}`}
             placeholder={placeholder}
             value={value}
             onChange={(e) => onChange(e.target.value)}

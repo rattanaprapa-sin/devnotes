@@ -12,11 +12,13 @@ export default function useRealtimeSync() {
   // Safely get currentNotebook ID if it exists
   const currentNotebookId = useSelector(state => state.notes.currentNotebook?.id);
   
-  // Get current pagination states to preserve the user's view
+  // Get current pagination and filter states to preserve the user's view
   const notebooksPage = useSelector(state => state.notebooks.pagination?.currentPage || 1);
   const notebooksLimit = useSelector(state => state.notebooks.pagination?.limit || 12);
   const notesPage = useSelector(state => state.notes.pagination?.currentPage || 1);
   const notesLimit = useSelector(state => state.notes.pagination?.limit || 12);
+  const notesCategoryFilter = useSelector(state => state.notes.activeCategoryFilter || 'All');
+  const notesSearchQuery = useSelector(state => state.notes.searchQuery || '');
 
   useEffect(() => {
     // Only subscribe to realtime events if the user is logged in
@@ -42,9 +44,17 @@ export default function useRealtimeSync() {
           // Determine which notebook this note belongs to
           const relevantNotebookId = payload.new?.notebook_id || payload.old?.notebook_id;
           
-          // If the user is currently viewing the notebook that this note belongs to, refetch the details
+          // If the user is currently viewing the notebook that this note belongs to, refetch the details preserving active filters
           if (currentNotebookId && relevantNotebookId === currentNotebookId) {
-            dispatch(fetchNotebookDetails({ notebookId: currentNotebookId, page: notesPage, limit: notesLimit }));
+            dispatch(
+              fetchNotebookDetails({
+                notebookId: currentNotebookId,
+                page: notesPage,
+                limit: notesLimit,
+                categoryId: notesCategoryFilter,
+                search: notesSearchQuery,
+              })
+            );
           }
         }
       )
@@ -54,5 +64,5 @@ export default function useRealtimeSync() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [dispatch, user, currentNotebookId, notebooksPage, notebooksLimit, notesPage, notesLimit]);
+  }, [dispatch, user, currentNotebookId, notebooksPage, notebooksLimit, notesPage, notesLimit, notesCategoryFilter, notesSearchQuery]);
 }
